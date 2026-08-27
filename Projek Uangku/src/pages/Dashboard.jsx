@@ -77,6 +77,10 @@ export default function Dashboard() {
         <p style={{ color: '#3C554C', marginTop: 4 }}>Catat pemasukan dan pengeluaran keluarga dengan tanggal transaksi dan waktu pencatatan yang jelas.</p>
       </div>
 
+      <div className="professional-dashboard-section">
+        <ProfessionalTools transactions={items} saldoAwal={saldoAwal} onSaldoAwalSaved={(v) => setSaldoAwal(v)} />
+      </div>
+
       <div style={{ marginBottom: '1.4rem' }}><SummaryCards totalMasuk={totalMasuk} totalKeluar={totalKeluar} saldoAwal={saldoAwal} /></div>
 
       <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: '1.4rem', alignItems: 'start' }}>
@@ -109,10 +113,6 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
-      </div>
-
-      <div style={{ marginTop: '1.4rem' }}>
-        <ProfessionalTools transactions={items} saldoAwal={saldoAwal} onSaldoAwalSaved={(v) => setSaldoAwal(v)} />
       </div>
 
       <style>{`@media (max-width: 780px) { .dashboard-grid { grid-template-columns: 1fr !important; } } .danger-zone { border-color: #E8C9C3; }`}</style>

@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, Legend, LineChart, Line } from 'recharts'
+import { ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, CartesianGrid, PieChart, Pie, Cell, LineChart, Line } from 'recharts'
 import { supabase } from '../supabaseClient'
 import { formatRupiah, formatTanggal, formatTanggalSingkat, toISODateLocal } from '../utils'
 import SummaryCards from '../components/SummaryCards'
@@ -38,10 +38,31 @@ export default function Laporan(){
  <ChartCard title="Pengeluaran per Hari"><ResponsiveContainer width="100%" height={280}><LineChart data={dataPengeluaran}><CartesianGrid strokeDasharray="3 3" stroke="#EFE9D9"/><XAxis dataKey="label" tick={{fontSize:11}}/><YAxis tick={{fontSize:11}} tickFormatter={v=>v>=1000000?`${v/1000000}jt`:`${v/1000}rb`}/><Tooltip formatter={v=>formatRupiah(v)}/><Line type="monotone" dataKey="value" name="Pengeluaran" stroke="#B1483A" strokeWidth={2}/></LineChart></ResponsiveContainer></ChartCard>
  <ChartCard title="Pemasukan berdasarkan Kategori"><PieOrEmpty data={incomePie}/></ChartCard><ChartCard title="Pengeluaran berdasarkan Kategori"><PieOrEmpty data={expensePie}/></ChartCard></div>
  <div className="card" style={{marginTop:'1.4rem',overflow:'hidden'}}><div style={{padding:'1rem 1.2rem',borderBottom:'1px solid #EFE9D9'}}><h3 style={{fontSize:'1rem',margin:0}}>Detail Transaksi</h3></div><div style={{overflowX:'auto'}}><table className="report-table"><thead><tr><th>Tanggal</th><th>Jenis</th><th>Kategori</th><th>Nominal</th><th>Sumber/Tujuan</th><th>Keterangan</th><th>Dicatat oleh</th><th>Waktu pencatatan</th></tr></thead><tbody>{dataTersaring.length===0?<tr><td colSpan="8" style={{textAlign:'center',padding:'1.5rem'}}>Tidak ada transaksi.</td></tr>:dataTersaring.slice(0,visible).map(t=><tr key={t.id}><td>{formatTanggalSingkat(t.tanggal)}</td><td>{t.tipe==='pemasukan'?'Pemasukan':'Pengeluaran'}</td><td>{t.kategori}</td><td className="mono" style={{fontWeight:700,color:t.tipe==='pemasukan'?'#2F7A54':'#B1483A'}}>{formatRupiah(t.jumlah)}</td><td>{t.sumber_tujuan||'—'}</td><td>{t.keterangan||'—'}</td><td>{t.profiles?.nama_tampilan||'—'}<br/><small>{t.profiles?.peran||'Anggota'}</small></td><td>{new Date(t.created_at).toLocaleString('id-ID')}</td></tr>)}</tbody></table></div>{dataTersaring.length>5&&<div className="load-more-wrap">{visible<dataTersaring.length?<button className="btn btn-ghost" onClick={()=>setVisible(v=>v+5)}>Lihat Selengkapnya ({Math.min(5,dataTersaring.length-visible)} lagi)</button>:<button className="btn btn-ghost" onClick={()=>setVisible(5)}>Tampilkan lebih sedikit</button>}</div>}</div>
- <style>{`.report-filters{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:.8rem}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:1.4rem}.comparison-card{padding:1.2rem;margin-top:1.4rem}.comparison-card h3{font-size:1rem;margin:0 0 1rem}.comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.comparison-grid>div{border:1px solid #EFE9D9;border-radius:10px;padding:.9rem}.comparison-grid span,.comparison-grid small{display:block;color:#8A7F68;font-size:.76rem}.comparison-grid strong{display:block;font-size:1.1rem;margin:.3rem 0}.report-table{width:100%;border-collapse:collapse;font-size:.78rem}.report-table th,.report-table td{padding:.7rem .8rem;border-bottom:1px solid #EFE9D9;text-align:left;vertical-align:top;white-space:nowrap}.report-table th{background:#FFFDF7;color:#3C554C}.load-more-wrap{text-align:center;padding:1rem}.hint{font-size:.76rem;color:#8A7F68}@media(max-width:780px){.chart-grid,.comparison-grid,.report-filters{grid-template-columns:1fr!important}}`}</style></div>
+ <style>{`.report-filters{display:grid;grid-template-columns:1.5fr 1fr 1fr;gap:.8rem}.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:1.4rem;margin-top:1.4rem}.comparison-card{padding:1.2rem;margin-top:1.4rem}.comparison-card h3{font-size:1rem;margin:0 0 1rem}.comparison-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}.comparison-grid>div{border:1px solid #EFE9D9;border-radius:10px;padding:.9rem}.comparison-grid span,.comparison-grid small{display:block;color:#8A7F68;font-size:.76rem}.comparison-grid strong{display:block;font-size:1.1rem;margin:.3rem 0}.report-table{width:100%;border-collapse:collapse;font-size:.78rem}.report-table th,.report-table td{padding:.7rem .8rem;border-bottom:1px solid #EFE9D9;text-align:left;vertical-align:top;white-space:nowrap}.report-table th{background:#FFFDF7;color:#3C554C}.load-more-wrap{text-align:center;padding:1rem}.hint{font-size:.76rem;color:#8A7F68}.pie-report-wrap{display:flex;flex-direction:column;min-width:0}.pie-chart-box{width:100%;min-width:0}.pie-category-list{display:flex;flex-direction:column;gap:.45rem;margin-top:.35rem;border-top:1px solid #EFE9D9;padding-top:.7rem}.pie-category-item{display:flex;justify-content:space-between;align-items:center;gap:.8rem;font-size:.74rem;min-width:0}.pie-category-name{display:flex;align-items:center;gap:.45rem;min-width:0;color:#3C554C}.pie-category-name i{width:9px;height:9px;border-radius:50%;flex:0 0 auto}.pie-category-name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.pie-category-value{color:#8A7F68;text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}@media(max-width:780px){.chart-grid,.comparison-grid,.report-filters{grid-template-columns:1fr!important}.pie-category-item{align-items:flex-start}.pie-category-value{font-size:.7rem}}`}</style></div>
 }
 function groupDaily(rows,bulan,mode){const m={};rows.forEach(t=>{const key=bulan?t.tanggal.slice(0,7):t.tanggal;if(!m[key])m[key]={key,value:0};m[key].value+=Number(t.jumlah)});return Object.values(m).sort((a,b)=>a.key.localeCompare(b.key)).map(x=>({...x,label:formatLabel(x.key,bulan),mode}))}
 function groupCategory(rows,tipe){const m={};rows.filter(t=>t.tipe===tipe).forEach(t=>m[t.kategori]=(m[t.kategori]||0)+Number(t.jumlah));return Object.entries(m).map(([name,value])=>({name,value})).sort((a,b)=>b.value-a.value)}
 function ChartCard({title,control,children}){return <div className="card" style={{padding:'1.3rem'}}><div style={{display:'flex',justifyContent:'space-between',alignItems:'center',gap:'.6rem',marginBottom:'1rem',flexWrap:'wrap'}}><h3 style={{fontSize:'1rem',margin:0}}>{title}</h3>{control}</div>{children}</div>}
-function PieOrEmpty({data}){if(!data.length)return <EmptyChart/>;return <ResponsiveContainer width="100%" height={280}><PieChart><Pie data={data} dataKey="value" nameKey="name" outerRadius={90} label={(d)=>d.name}>{data.map((_,i)=><Cell key={i} fill={WARNA_KATEGORI[i%WARNA_KATEGORI.length]}/>)}</Pie><Tooltip formatter={v=>formatRupiah(v)}/><Legend/></PieChart></ResponsiveContainer>}
+function PieOrEmpty({data}){
+ if(!data.length)return <EmptyChart/>;
+ const total=data.reduce((s,d)=>s+Number(d.value),0);
+ return <div className="pie-report-wrap">
+   <div className="pie-chart-box">
+     <ResponsiveContainer width="100%" height={230}>
+       <PieChart>
+         <Pie data={data} dataKey="value" nameKey="name" outerRadius="72%" paddingAngle={2} label={false} labelLine={false}>
+           {data.map((_,i)=><Cell key={i} fill={WARNA_KATEGORI[i%WARNA_KATEGORI.length]}/>)}
+         </Pie>
+         <Tooltip formatter={v=>formatRupiah(v)}/>
+       </PieChart>
+     </ResponsiveContainer>
+   </div>
+   <div className="pie-category-list">
+     {data.map((item,i)=>{const pct=total?((Number(item.value)/total)*100).toFixed(1):'0.0';return <div className="pie-category-item" key={item.name}>
+       <span className="pie-category-name"><i style={{background:WARNA_KATEGORI[i%WARNA_KATEGORI.length]}}></i>{item.name}</span>
+       <span className="pie-category-value">{pct}% · {formatRupiah(item.value)}</span>
+     </div>})}
+   </div>
+ </div>
+}
 function EmptyChart(){return <p style={{color:'#8A7F68',textAlign:'center',padding:'2rem 0'}}>Belum ada data pada rentang ini.</p>}

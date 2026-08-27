@@ -42,7 +42,7 @@ function App() {
     }
   }, [session])
 
-  if (session === undefined) {
+  if (session === undefined || (session && profile === null)) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'Inter, sans-serif', color: '#3C554C' }}>
         Memuat Uangku…

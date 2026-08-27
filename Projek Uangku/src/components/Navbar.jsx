@@ -40,13 +40,13 @@ export default function Navbar() {
         <span style={{ fontFamily: 'Fraunces, serif', fontSize: '1.25rem', fontWeight: 700, color: '#16332B' }}>
           Uangku
         </span>
-        <nav style={{ display: 'flex', gap: '0.4rem' }}>
+        <nav className="main-nav" style={{ display: 'flex', gap: '0.4rem' }}>
           <NavLink to="/" style={linkStyle} end>Catat</NavLink>
           <NavLink to="/laporan" style={linkStyle}>Laporan</NavLink>
           <NavLink to="/pengaturan" style={linkStyle}>Pengaturan</NavLink>
         </nav>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+      <div className="nav-account" style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
         {profile && (
           <span style={{ fontSize: '0.85rem', color: '#3C554C' }}>
             {profile.nama_tampilan} · <strong style={{ color: '#C79A3D' }}>{profile.peran}</strong>

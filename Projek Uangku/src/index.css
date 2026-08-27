@@ -146,3 +146,55 @@ input, select, textarea {
 .progress span { display:block; height:100%; background:var(--gold); border-radius:99px; }
 @media(max-width:600px){.pro-row{grid-template-columns:1fr}.inline-form>*{width:100%}.inline-form .btn{width:100%}}
 .budget-alert { margin-top:.8rem; padding:.7rem .85rem; border-radius:9px; background:#FFF8E7; border:1px solid #E9D6A5; color:#7A5A16; font-size:.78rem; }
+
+
+/* Mobile-first layout refinements */
+html { overflow-x: hidden; }
+body { overflow-x: hidden; }
+#root { min-width: 0; }
+.professional-dashboard-section { margin: 0 auto 1.4rem; width: 100%; }
+.pro-tab-info {
+  display: flex;
+  flex-direction: column;
+  gap: .2rem;
+  margin: -.15rem 0 1rem;
+  padding: .75rem .85rem;
+  border: 1px solid #EFE9D9;
+  border-radius: 10px;
+  background: #FFFDF7;
+}
+.pro-tab-info strong { font-size: .82rem; color: var(--ink); }
+.pro-tab-info span { font-size: .74rem; line-height: 1.5; color: #8A7F68; }
+
+@media (max-width: 780px) {
+  .professional-card { padding: .9rem; }
+  .pro-head h3 { font-size: 1rem; }
+  .pro-head p { font-size: .76rem; line-height: 1.5; }
+  .pro-tabs {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: .55rem;
+    scrollbar-width: thin;
+    -webkit-overflow-scrolling: touch;
+  }
+  .pro-tabs button { flex: 0 0 auto; white-space: nowrap; }
+  .inline-form { align-items: stretch; }
+  .inline-form input, .inline-form select, .inline-form button { width: 100%; min-width: 0; }
+  .pro-row { grid-template-columns: 1fr; align-items: stretch; }
+  .pro-row .btn { width: 100%; }
+  .card { max-width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .professional-dashboard-section { margin-bottom: 1rem; }
+  .pro-tab-info { margin-bottom: .8rem; }
+  .btn { width: auto; max-width: 100%; }
+  .field input, .field select, .field textarea { max-width: 100%; }
+}
+
+@media (max-width: 600px) {
+  .main-nav { width: 100%; overflow-x: auto; padding-bottom: .1rem; }
+  .main-nav a { flex: 0 0 auto; white-space: nowrap; }
+  .nav-account { width: 100%; justify-content: space-between; }
+  .nav-account > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+}
