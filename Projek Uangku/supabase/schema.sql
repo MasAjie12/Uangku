@@ -341,3 +341,70 @@ end;
 $$ language plpgsql security definer set search_path = public;
 
 grant execute on function public.hapus_histori_keluarga(date, date) to authenticated;
+
+-- ============================================================
+-- FITUR KEUANGAN PROFESIONAL UANGKU
+-- Jalankan bagian ini setelah schema utama.
+-- ============================================================
+
+alter table public.keluarga add column if not exists saldo_awal numeric(14,2) not null default 0;
+alter table public.transaksi add column if not exists updated_at timestamptz not null default now();
+alter table public.transaksi add column if not exists updated_by uuid references auth.users(id);
+alter table public.transaksi add column if not exists bukti_path text;
+
+create table if not exists public.anggaran (
+  id uuid primary key default gen_random_uuid(), keluarga_id uuid not null references public.keluarga(id) on delete cascade,
+  kategori text not null, bulan date not null, batas numeric(14,2) not null check (batas > 0), created_by uuid references auth.users(id), created_at timestamptz not null default now(),
+  unique(keluarga_id, kategori, bulan)
+);
+create index if not exists anggaran_keluarga_bulan_idx on public.anggaran(keluarga_id, bulan);
+
+create table if not exists public.transaksi_berulang (
+  id uuid primary key default gen_random_uuid(), keluarga_id uuid not null references public.keluarga(id) on delete cascade,
+  user_id uuid not null references public.profiles(id) on delete cascade, tipe text not null check (tipe in ('pemasukan','pengeluaran')), kategori text not null,
+  jumlah numeric(14,2) not null check (jumlah > 0), keterangan text, sumber_tujuan text, frekuensi text not null check (frekuensi in ('harian','mingguan','bulanan','tahunan')),
+  tanggal_berikutnya date not null, aktif boolean not null default true, created_at timestamptz not null default now()
+);
+create index if not exists transaksi_berulang_keluarga_idx on public.transaksi_berulang(keluarga_id, aktif, tanggal_berikutnya);
+
+create table if not exists public.target_tabungan (
+  id uuid primary key default gen_random_uuid(), keluarga_id uuid not null references public.keluarga(id) on delete cascade,
+  nama text not null, target numeric(14,2) not null check (target > 0), terkumpul numeric(14,2) not null default 0 check (terkumpul >= 0), tenggat date,
+  created_at timestamptz not null default now()
+);
+create index if not exists target_tabungan_keluarga_idx on public.target_tabungan(keluarga_id);
+
+create table if not exists public.tagihan (
+  id uuid primary key default gen_random_uuid(), keluarga_id uuid not null references public.keluarga(id) on delete cascade,
+  nama text not null, nominal numeric(14,2) not null check (nominal > 0), jatuh_tempo date not null, berulang boolean not null default false,
+  status text not null default 'belum' check (status in ('belum','lunas')), created_at timestamptz not null default now()
+);
+create index if not exists tagihan_keluarga_tempo_idx on public.tagihan(keluarga_id, jatuh_tempo, status);
+
+create or replace function public.touch_transaksi_updated_at()
+returns trigger as $$ begin new.updated_at = now(); new.updated_by = auth.uid(); return new; end; $$ language plpgsql security definer;
+drop trigger if exists trg_touch_transaksi on public.transaksi;
+create trigger trg_touch_transaksi before update on public.transaksi for each row execute procedure public.touch_transaksi_updated_at();
+
+alter table public.anggaran enable row level security;
+alter table public.transaksi_berulang enable row level security;
+alter table public.target_tabungan enable row level security;
+alter table public.tagihan enable row level security;
+
+drop policy if exists "anggaran_family_all" on public.anggaran;
+create policy "anggaran_family_all" on public.anggaran for all to authenticated using (keluarga_id = public.my_keluarga_id()) with check (keluarga_id = public.my_keluarga_id());
+drop policy if exists "berulang_family_all" on public.transaksi_berulang;
+create policy "berulang_family_all" on public.transaksi_berulang for all to authenticated using (keluarga_id = public.my_keluarga_id()) with check (keluarga_id = public.my_keluarga_id());
+drop policy if exists "target_family_all" on public.target_tabungan;
+create policy "target_family_all" on public.target_tabungan for all to authenticated using (keluarga_id = public.my_keluarga_id()) with check (keluarga_id = public.my_keluarga_id());
+drop policy if exists "tagihan_family_all" on public.tagihan;
+create policy "tagihan_family_all" on public.tagihan for all to authenticated using (keluarga_id = public.my_keluarga_id()) with check (keluarga_id = public.my_keluarga_id());
+
+-- Storage untuk bukti/struk transaksi. Buat bucket private bernama bukti-transaksi.
+insert into storage.buckets (id, name, public) values ('bukti-transaksi','bukti-transaksi',false) on conflict (id) do nothing;
+drop policy if exists "bukti_upload_family" on storage.objects;
+create policy "bukti_upload_family" on storage.objects for insert to authenticated with check (bucket_id='bukti-transaksi');
+drop policy if exists "bukti_read_family" on storage.objects;
+create policy "bukti_read_family" on storage.objects for select to authenticated using (bucket_id='bukti-transaksi');
+drop policy if exists "bukti_delete_own" on storage.objects;
+create policy "bukti_delete_own" on storage.objects for delete to authenticated using (bucket_id='bukti-transaksi' and owner_id::uuid = auth.uid());

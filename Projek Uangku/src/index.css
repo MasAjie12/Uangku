@@ -122,3 +122,27 @@ input, select, textarea {
 .report-table tbody tr:hover { background: #FFFDF7; }
 .report-table td, .report-table th { font-variant-numeric: tabular-nums; }
 .danger-zone { background: #FFFBFA; }
+
+.load-more { display:block; margin: .8rem auto 0; }
+.text-button { background:none; border:0; padding:0; color:#3C6E71; font-size:.75rem; }
+.danger-text { color:#B1483A; }
+.modal-backdrop { position:fixed; inset:0; background:rgba(22,51,43,.28); display:grid; place-items:center; padding:1rem; z-index:50; }
+.modal { width:min(520px,100%); padding:1.3rem; }
+.modal h3 { margin-bottom:1rem; }
+.modal-actions { display:flex; justify-content:flex-end; gap:.6rem; margin-top:.8rem; }
+.professional-card { margin-top:0; padding:1.2rem; }
+.pro-head h3 { font-size:1.05rem; }
+.pro-head p { margin:.3rem 0 1rem; color:var(--ink-soft); font-size:.8rem; }
+.pro-tabs { display:flex; gap:.4rem; flex-wrap:wrap; border-bottom:1px solid #EFE9D9; padding-bottom:.7rem; margin-bottom:1rem; }
+.pro-tabs button { border:1px solid var(--line); background:#fff; border-radius:9px; padding:.45rem .7rem; font-size:.78rem; color:var(--ink-soft); }
+.pro-tabs button.active { background:var(--ink); color:var(--paper); }
+.inline-form { display:flex; gap:.6rem; flex-wrap:wrap; align-items:center; }
+.inline-form input,.inline-form select { border:1px solid var(--line); border-radius:9px; padding:.6rem .7rem; min-width:130px; background:#fff; }
+.pro-list { margin-top:1rem; display:flex; flex-direction:column; gap:.55rem; }
+.pro-row { display:grid; grid-template-columns:minmax(170px,1fr) minmax(130px,1fr) auto; align-items:center; gap:.8rem; border:1px solid #EFE9D9; border-radius:10px; padding:.75rem .85rem; }
+.pro-row strong,.pro-row small { display:block; }
+.pro-row small { color:#8A7F68; font-size:.72rem; margin-top:.2rem; }
+.progress { height:7px; background:#EFE9D9; border-radius:99px; overflow:hidden; }
+.progress span { display:block; height:100%; background:var(--gold); border-radius:99px; }
+@media(max-width:600px){.pro-row{grid-template-columns:1fr}.inline-form>*{width:100%}.inline-form .btn{width:100%}}
+.budget-alert { margin-top:.8rem; padding:.7rem .85rem; border-radius:9px; background:#FFF8E7; border:1px solid #E9D6A5; color:#7A5A16; font-size:.78rem; }

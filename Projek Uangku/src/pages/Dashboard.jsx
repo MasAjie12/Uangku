@@ -1,9 +1,11 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { supabase } from '../supabaseClient'
+import { useAuth } from '../App'
 import TransaksiForm from '../components/TransaksiForm'
 import TransaksiList from '../components/TransaksiList'
 import SummaryCards from '../components/SummaryCards'
 import { formatTanggal, getWeekRange, toISODateLocal } from '../utils'
+import ProfessionalTools from '../components/ProfessionalTools'
 
 export default function Dashboard() {
   const [items, setItems] = useState([])
@@ -12,6 +14,7 @@ export default function Dashboard() {
   const [hapusMode, setHapusMode] = useState('hari')
   const [hapusTanggal, setHapusTanggal] = useState(() => toISODateLocal(new Date()))
   const [deleting, setDeleting] = useState(false)
+  const [saldoAwal, setSaldoAwal] = useState(0)
 
   const muatData = useCallback(async () => {
     const { data } = await supabase
@@ -20,8 +23,10 @@ export default function Dashboard() {
       .order('created_at', { ascending: false })
       .limit(200)
     setItems(data || [])
+    const { data: prof } = await supabase.from('profiles').select('keluarga_id, keluarga(saldo_awal)').eq('id', session?.user?.id || '').single()
+    setSaldoAwal(Number(prof?.keluarga?.saldo_awal || 0))
     setLoading(false)
-  }, [])
+  }, [session])
 
   useEffect(() => {
     muatData()
@@ -67,7 +72,7 @@ export default function Dashboard() {
         <p style={{ color: '#3C554C', marginTop: 4 }}>Catat pemasukan dan pengeluaran keluarga dengan tanggal transaksi dan waktu pencatatan yang jelas.</p>
       </div>
 
-      <div style={{ marginBottom: '1.4rem' }}><SummaryCards totalMasuk={totalMasuk} totalKeluar={totalKeluar} /></div>
+      <div style={{ marginBottom: '1.4rem' }}><SummaryCards totalMasuk={totalMasuk} totalKeluar={totalKeluar} saldoAwal={saldoAwal} /></div>
 
       <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: '1.4rem', alignItems: 'start' }}>
         <TransaksiForm onSaved={muatData} />
@@ -99,6 +104,10 @@ export default function Dashboard() {
             </div>
           </div>
         </div>
+      </div>
+
+      <div style={{ marginTop: '1.4rem' }}>
+        <ProfessionalTools transactions={items} saldoAwal={saldoAwal} onSaldoAwalSaved={(v) => setSaldoAwal(v)} />
       </div>
 
       <style>{`@media (max-width: 780px) { .dashboard-grid { grid-template-columns: 1fr !important; } } .danger-zone { border-color: #E8C9C3; }`}</style>

@@ -15,6 +15,7 @@ export default function TransaksiForm({ onSaved }) {
   const [tanggal, setTanggal] = useState(() => toISODateLocal(new Date()))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [bukti, setBukti] = useState(null)
 
   useEffect(() => {
     muatKategori(tipe)
@@ -45,6 +46,15 @@ export default function TransaksiForm({ onSaved }) {
       }
     }
 
+    let buktiPath = null
+    if (bukti) {
+      const ext = bukti.name.split('.').pop() || 'bin'
+      const path = `${session.user.id}/${Date.now()}-${crypto.randomUUID()}.${ext}`
+      const up = await supabase.storage.from('bukti-transaksi').upload(path, bukti, { upsert: false })
+      if (up.error) { setSaving(false); return setError('Gagal mengunggah bukti: ' + up.error.message) }
+      buktiPath = path
+    }
+
     const { error } = await supabase.from('transaksi').insert({
       user_id: session.user.id,
       tipe,
@@ -53,6 +63,7 @@ export default function TransaksiForm({ onSaved }) {
       keterangan: keterangan.trim() || null,
       sumber_tujuan: sumberTujuan.trim() || null,
       tanggal,
+      bukti_path: buktiPath,
     })
     setSaving(false)
     if (error) return setError('Gagal menyimpan: ' + error.message)
@@ -62,6 +73,7 @@ export default function TransaksiForm({ onSaved }) {
     setJumlah('')
     setKeterangan('')
     setSumberTujuan('')
+    setBukti(null)
     muatKategori(tipe)
     onSaved && onSaved()
   }
@@ -120,6 +132,12 @@ export default function TransaksiForm({ onSaved }) {
       <div className="field">
         <label>{tipe === 'pemasukan' ? 'Uang ini dari mana?' : 'Uang ini untuk apa / dibayar ke mana?'}</label>
         <input value={sumberTujuan} onChange={(e) => setSumberTujuan(e.target.value)} placeholder={tipe === 'pemasukan' ? 'mis. Kantor, Klien A' : 'mis. Warung Bu Sari, PLN'} />
+      </div>
+
+      <div className="field">
+        <label>Bukti / struk (opsional)</label>
+        <input type="file" accept="image/*,.pdf" onChange={e=>setBukti(e.target.files?.[0] || null)} />
+        <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>Simpan foto struk atau PDF sebagai bukti transaksi.</span>
       </div>
 
       <div className="field">

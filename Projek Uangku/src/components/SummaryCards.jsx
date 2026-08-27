@@ -1,9 +1,10 @@
 import React from 'react'
 import { formatRupiah } from '../utils'
 
-export default function SummaryCards({ totalMasuk, totalKeluar }) {
-  const saldo = totalMasuk - totalKeluar
+export default function SummaryCards({ totalMasuk, totalKeluar, saldoAwal = 0 }) {
+  const saldo = saldoAwal + totalMasuk - totalKeluar
   const items = [
+    ...(saldoAwal ? [{ label: 'Saldo Awal', value: saldoAwal, color: '#C79A3D', bg: '#FFF8E7' }] : []),
     { label: 'Total Pemasukan', value: totalMasuk, color: '#2F7A54', bg: '#E4F0E7' },
     { label: 'Total Pengeluaran', value: totalKeluar, color: '#B1483A', bg: '#F5E5E1' },
     { label: 'Saldo', value: saldo, color: saldo >= 0 ? '#16332B' : '#B1483A', bg: '#FFFFFF' },
