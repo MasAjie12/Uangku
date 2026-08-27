@@ -313,3 +313,31 @@ create policy "kategori_delete_keluarga"
   on public.kategori for delete
   to authenticated
   using (keluarga_id = public.my_keluarga_id());
+
+-- 17. Hapus histori keluarga berdasarkan rentang tanggal.
+-- Fungsi ini dipanggil dari aplikasi setelah konfirmasi eksplisit pengguna.
+create or replace function public.hapus_histori_keluarga(p_tanggal_awal date, p_tanggal_akhir date)
+returns integer as $$
+declare
+  v_keluarga_id uuid;
+  v_count integer;
+begin
+  if p_tanggal_awal is null or p_tanggal_akhir is null or p_tanggal_awal > p_tanggal_akhir then
+    raise exception 'Rentang tanggal tidak valid.';
+  end if;
+
+  select keluarga_id into v_keluarga_id from public.profiles where id = auth.uid();
+  if v_keluarga_id is null then
+    raise exception 'Profil keluarga tidak ditemukan.';
+  end if;
+
+  delete from public.transaksi
+  where keluarga_id = v_keluarga_id
+    and tanggal between p_tanggal_awal and p_tanggal_akhir;
+
+  get diagnostics v_count = row_count;
+  return v_count;
+end;
+$$ language plpgsql security definer set search_path = public;
+
+grant execute on function public.hapus_histori_keluarga(date, date) to authenticated;

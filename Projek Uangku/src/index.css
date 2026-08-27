@@ -118,3 +118,7 @@ input, select, textarea {
 @media (prefers-reduced-motion: reduce) {
   * { transition: none !important; animation: none !important; }
 }
+
+.report-table tbody tr:hover { background: #FFFDF7; }
+.report-table td, .report-table th { font-variant-numeric: tabular-nums; }
+.danger-zone { background: #FFFBFA; }

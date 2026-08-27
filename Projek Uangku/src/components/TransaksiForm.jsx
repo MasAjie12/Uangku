@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
+import { formatNominalInput, parseNominalInput, toISODateLocal } from '../utils'
 
 export default function TransaksiForm({ onSaved }) {
   const { session } = useAuth()
@@ -11,7 +12,7 @@ export default function TransaksiForm({ onSaved }) {
   const [jumlah, setJumlah] = useState('')
   const [keterangan, setKeterangan] = useState('')
   const [sumberTujuan, setSumberTujuan] = useState('')
-  const [tanggal, setTanggal] = useState(() => new Date().toISOString().slice(0, 10))
+  const [tanggal, setTanggal] = useState(() => toISODateLocal(new Date()))
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
@@ -21,11 +22,7 @@ export default function TransaksiForm({ onSaved }) {
   }, [tipe])
 
   async function muatKategori(t) {
-    const { data } = await supabase
-      .from('kategori')
-      .select('nama')
-      .eq('tipe', t)
-      .order('nama')
+    const { data } = await supabase.from('kategori').select('nama').eq('tipe', t).order('nama')
     setDaftarKategori((data || []).map((k) => k.nama))
   }
 
@@ -34,20 +31,18 @@ export default function TransaksiForm({ onSaved }) {
   async function handleSubmit(e) {
     e.preventDefault()
     setError('')
-    if (!kategoriFinal) {
-      setError('Pilih atau isi kategori terlebih dahulu.')
-      return
-    }
-    const nominal = Number(jumlah)
-    if (!nominal || nominal <= 0) {
-      setError('Nominal harus lebih dari 0.')
-      return
-    }
+    if (!tanggal) return setError('Tanggal transaksi wajib diisi.')
+    if (!kategoriFinal) return setError('Pilih atau isi kategori terlebih dahulu.')
+    const nominal = parseNominalInput(jumlah)
+    if (!nominal || nominal <= 0) return setError('Nominal harus lebih dari 0.')
     setSaving(true)
 
-    // Kalau kategori baru, simpan dulu supaya bisa dipakai lagi lain kali
     if (kategori === '__custom__') {
-      await supabase.from('kategori').insert({ tipe, nama: kategoriFinal })
+      const { error: kategoriError } = await supabase.from('kategori').insert({ tipe, nama: kategoriFinal })
+      if (kategoriError && !kategoriError.message.toLowerCase().includes('duplicate')) {
+        setSaving(false)
+        return setError('Gagal membuat kategori: ' + kategoriError.message)
+      }
     }
 
     const { error } = await supabase.from('transaksi').insert({
@@ -60,10 +55,8 @@ export default function TransaksiForm({ onSaved }) {
       tanggal,
     })
     setSaving(false)
-    if (error) {
-      setError('Gagal menyimpan: ' + error.message)
-      return
-    }
+    if (error) return setError('Gagal menyimpan: ' + error.message)
+
     setKategori('')
     setKategoriCustom('')
     setJumlah('')
@@ -77,36 +70,32 @@ export default function TransaksiForm({ onSaved }) {
     <form onSubmit={handleSubmit} className="card" style={{ padding: '1.4rem' }}>
       <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.1rem' }}>
         {['pengeluaran', 'pemasukan'].map((t) => (
-          <button
-            type="button"
-            key={t}
-            onClick={() => setTipe(t)}
-            style={{
-              flex: 1,
-              padding: '0.65rem',
-              borderRadius: 10,
-              border: '1px solid #DED4BE',
-              fontWeight: 700,
-              fontSize: '0.88rem',
-              background: tipe === t ? (t === 'pemasukan' ? '#E4F0E7' : '#F5E5E1') : '#fff',
-              color: tipe === t ? (t === 'pemasukan' ? '#2F7A54' : '#B1483A') : '#3C554C',
-            }}
-          >
+          <button type="button" key={t} onClick={() => setTipe(t)} style={{
+            flex: 1, padding: '0.65rem', borderRadius: 10, border: '1px solid #DED4BE',
+            fontWeight: 700, fontSize: '0.88rem',
+            background: tipe === t ? (t === 'pemasukan' ? '#E4F0E7' : '#F5E5E1') : '#fff',
+            color: tipe === t ? (t === 'pemasukan' ? '#2F7A54' : '#B1483A') : '#3C554C',
+          }}>
             {t === 'pemasukan' ? '+ Pemasukan' : '− Pengeluaran'}
           </button>
         ))}
       </div>
 
       <div className="field">
+        <label>Tanggal transaksi</label>
+        <input type="date" value={tanggal} max={toISODateLocal(new Date())} onChange={(e) => setTanggal(e.target.value)} required />
+        <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>Masukkan tanggal terlebih dahulu, lalu nominal.</span>
+      </div>
+
+      <div className="field">
         <label>Nominal (Rp)</label>
         <input
-          type="number"
-          min="1"
-          step="1"
+          type="text"
           inputMode="numeric"
           value={jumlah}
-          onChange={(e) => setJumlah(e.target.value)}
-          placeholder="mis. 50000"
+          onChange={(e) => setJumlah(formatNominalInput(e.target.value))}
+          placeholder="mis. 50.000"
+          autoComplete="off"
           required
         />
       </div>
@@ -118,9 +107,7 @@ export default function TransaksiForm({ onSaved }) {
           {daftarKategori.map((k) => <option key={k} value={k}>{k}</option>)}
           <option value="__custom__">+ Buat kategori baru</option>
         </select>
-        <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>
-          Kelola daftar kategori lengkap di halaman Pengaturan.
-        </span>
+        <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>Kelola daftar kategori lengkap di halaman Pengaturan.</span>
       </div>
 
       {kategori === '__custom__' && (
@@ -140,13 +127,7 @@ export default function TransaksiForm({ onSaved }) {
         <textarea rows={2} value={keterangan} onChange={(e) => setKeterangan(e.target.value)} placeholder="Catatan opsional…" />
       </div>
 
-      <div className="field">
-        <label>Tanggal</label>
-        <input type="date" value={tanggal} onChange={(e) => setTanggal(e.target.value)} required />
-      </div>
-
       {error && <p style={{ color: '#B1483A', fontSize: '0.85rem' }}>{error}</p>}
-
       <button className="btn btn-primary" style={{ width: '100%' }} disabled={saving}>
         {saving ? 'Menyimpan…' : 'Simpan Catatan'}
       </button>

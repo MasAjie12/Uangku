@@ -193,3 +193,23 @@ password lewat **Supabase Dashboard → Authentication → Users → pilih user 
 
 **Bisa dipakai lebih dari 2 orang?**
 Bisa. Tidak ada batas jumlah akun/peran — tambahkan sebanyak anggota keluarga yang perlu.
+
+## 10. Update fitur pencatatan & laporan
+
+Versi ini menambahkan:
+- Input nominal Rupiah otomatis memakai pemisah ribuan titik (contoh `50000` menjadi `50.000`).
+- Urutan input transaksi: tanggal transaksi → nominal → kategori → sumber/tujuan → keterangan.
+- Histori menampilkan tanggal transaksi serta waktu pencatatan dan nama/peran pencatat.
+- Pencarian histori terbaru berdasarkan kategori, keterangan, pencatat, atau tanggal.
+- Laporan dengan rentang tanggal, pencarian, filter jenis dan kategori.
+- Chart pemasukan yang dapat difilter berdasarkan kategori.
+- Chart pengeluaran per kategori.
+- Detail transaksi pada laporan.
+- Tombol **Cetak / Export PDF**. Browser akan membuka halaman laporan yang siap disimpan sebagai PDF melalui dialog Print.
+- Tombol **Export Excel** yang menghasilkan file `.xls` yang dapat dibuka dengan Microsoft Excel.
+- Hapus histori keluarga berdasarkan **hari, minggu (Senin–Minggu), atau bulan**, dengan tanggal acuan dan konfirmasi sebelum penghapusan.
+
+### Penting setelah update
+Jalankan ulang seluruh `supabase/schema.sql` di **Supabase Dashboard → SQL Editor** agar fungsi `hapus_histori_keluarga` tersedia. Skrip menggunakan `create or replace`/`if not exists` pada bagian yang relevan dan tidak dimaksudkan untuk menghapus data lama secara otomatis.
+
+Fitur hapus periode menghapus transaksi seluruh keluarga pada rentang yang dipilih. Karena bersifat permanen, gunakan hanya setelah konfirmasi yang muncul di aplikasi.
