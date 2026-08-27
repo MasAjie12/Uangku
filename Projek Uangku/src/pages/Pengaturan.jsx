@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
+import KategoriManager from '../components/KategoriManager'
 
 export default function Pengaturan() {
   const { session, profile, setProfile } = useAuth()
@@ -124,6 +125,8 @@ export default function Pengaturan() {
       )}
 
       {pesan && <p style={{ color: pesan.startsWith('Gagal') ? '#B1483A' : '#2F7A54', marginBottom: '1rem' }}>{pesan}</p>}
+
+      <KategoriManager />
 
       <h3 style={{ fontSize: '1.05rem', marginBottom: '0.7rem' }}>Anggota Keluarga</h3>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.9rem' }}>

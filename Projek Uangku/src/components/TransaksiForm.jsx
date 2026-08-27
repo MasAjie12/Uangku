@@ -1,15 +1,11 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
-
-const KATEGORI_DEFAULT = {
-  pemasukan: ['Gaji', 'Bonus', 'Usaha Sampingan', 'Hadiah', 'Lainnya'],
-  pengeluaran: ['Belanja Harian', 'Listrik & Air', 'Transportasi', 'Pendidikan', 'Kesehatan', 'Cicilan', 'Lainnya'],
-}
 
 export default function TransaksiForm({ onSaved }) {
   const { session } = useAuth()
   const [tipe, setTipe] = useState('pengeluaran')
+  const [daftarKategori, setDaftarKategori] = useState([])
   const [kategori, setKategori] = useState('')
   const [kategoriCustom, setKategoriCustom] = useState('')
   const [jumlah, setJumlah] = useState('')
@@ -19,7 +15,20 @@ export default function TransaksiForm({ onSaved }) {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
 
-  const opsiKategori = KATEGORI_DEFAULT[tipe]
+  useEffect(() => {
+    muatKategori(tipe)
+    setKategori('')
+  }, [tipe])
+
+  async function muatKategori(t) {
+    const { data } = await supabase
+      .from('kategori')
+      .select('nama')
+      .eq('tipe', t)
+      .order('nama')
+    setDaftarKategori((data || []).map((k) => k.nama))
+  }
+
   const kategoriFinal = kategori === '__custom__' ? kategoriCustom.trim() : kategori
 
   async function handleSubmit(e) {
@@ -35,6 +44,12 @@ export default function TransaksiForm({ onSaved }) {
       return
     }
     setSaving(true)
+
+    // Kalau kategori baru, simpan dulu supaya bisa dipakai lagi lain kali
+    if (kategori === '__custom__') {
+      await supabase.from('kategori').insert({ tipe, nama: kategoriFinal })
+    }
+
     const { error } = await supabase.from('transaksi').insert({
       user_id: session.user.id,
       tipe,
@@ -54,6 +69,7 @@ export default function TransaksiForm({ onSaved }) {
     setJumlah('')
     setKeterangan('')
     setSumberTujuan('')
+    muatKategori(tipe)
     onSaved && onSaved()
   }
 
@@ -64,7 +80,7 @@ export default function TransaksiForm({ onSaved }) {
           <button
             type="button"
             key={t}
-            onClick={() => { setTipe(t); setKategori('') }}
+            onClick={() => setTipe(t)}
             style={{
               flex: 1,
               padding: '0.65rem',
@@ -99,9 +115,12 @@ export default function TransaksiForm({ onSaved }) {
         <label>Kategori</label>
         <select value={kategori} onChange={(e) => setKategori(e.target.value)} required>
           <option value="" disabled>Pilih kategori…</option>
-          {opsiKategori.map((k) => <option key={k} value={k}>{k}</option>)}
+          {daftarKategori.map((k) => <option key={k} value={k}>{k}</option>)}
           <option value="__custom__">+ Buat kategori baru</option>
         </select>
+        <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>
+          Kelola daftar kategori lengkap di halaman Pengaturan.
+        </span>
       </div>
 
       {kategori === '__custom__' && (

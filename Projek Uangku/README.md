@@ -143,7 +143,45 @@ uangku/
 
 ---
 
-## 8. Pertanyaan umum
+## 8. Fitur Grup Keluarga (multi-keluarga dalam satu website)
+
+Sejak update ini, satu website Uangku bisa dipakai oleh **banyak keluarga sekaligus** tanpa
+data mereka saling tercampur.
+
+- Saat mendaftar, orang pertama di sebuah keluarga memilih **"Buat keluarga baru"** dan akan
+  mendapat **kode undangan** unik (6 karakter, terlihat di halaman Pengaturan).
+- Anggota keluarga lainnya memilih **"Gabung pakai kode"** lalu memasukkan kode tersebut.
+- Semua transaksi, histori, dan laporan hanya terlihat oleh sesama anggota yang tergabung di
+  kode undangan yang sama. Keluarga lain yang mendaftar di website yang sama tidak akan
+  melihat data satu sama lain.
+
+### Kalau kamu sudah punya data sebelum fitur ini ada
+
+Jalankan ulang isi file `supabase/schema.sql` yang baru di **SQL Editor** Supabase (sama
+seperti langkah 3 di atas). Skrip ini aman dijalankan ulang — dia akan otomatis:
+1. Membuat grup keluarga baru bernama **"Keluarga Pertama"**.
+2. Memasukkan semua akun & transaksi yang sudah ada ke grup itu, supaya tidak ada data hilang.
+
+Setelah itu, buka halaman **Pengaturan** di aplikasi untuk melihat kode undangan grup
+tersebut, lalu bagikan ke anggota keluarga lain yang ingin bergabung.
+
+---
+
+## 9. Kelola Kategori & Laporan Rentang Tanggal
+
+- Halaman **Pengaturan** sekarang punya bagian **Kelola Kategori**: tambah kategori baru atau
+  hapus yang tidak dipakai, terpisah untuk pemasukan dan pengeluaran. Kategori bawaan sudah
+  otomatis dibuatkan untuk keluarga baru.
+- Halaman **Laporan** sekarang bisa memilih rentang tanggal bebas (bukan cuma per bulan), dengan
+  tombol cepat: 7 Hari Terakhir, 30 Hari Terakhir, Bulan Ini, dan Semua.
+
+Kalau kamu meng-update dari versi sebelumnya, jalankan ulang `supabase/schema.sql` yang terbaru
+di SQL Editor — ini otomatis menambahkan tabel kategori dan mengisi kategori bawaan untuk
+keluarga yang sudah ada, tanpa menghapus data lama.
+
+---
+
+## 10. Pertanyaan umum
 
 **Apakah gratis selamanya?**
 Supabase dan Vercel free tier cukup untuk pemakaian keluarga (jauh di bawah batas gratis
