@@ -192,60 +192,122 @@ body { overflow-x: hidden; }
   .field input, .field select, .field textarea { max-width: 100%; }
 }
 
-@media (max-width: 600px) {
+/* Navbar — desktop: brand left, navigation center, account right */
+.app-navbar {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  width: 100%;
+  min-width: 0;
+  padding: .8rem 1.4rem;
+  border-bottom: 1px solid var(--line);
+  background: #fff;
+  position: sticky;
+  top: 0;
+  z-index: 20;
+}
+.nav-top-row {
+  display: contents;
+}
+.nav-brand { min-width: 0; justify-self: start; }
+.nav-brand span {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--ink);
+  white-space: nowrap;
+}
+.app-navbar .main-nav {
+  grid-column: 2;
+  grid-row: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: .4rem;
+}
+.app-navbar .main-nav a { flex: 0 0 auto; white-space: nowrap; }
+.app-navbar .nav-account {
+  grid-column: 3;
+  grid-row: 1;
+  min-width: 0;
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: .7rem;
+}
+.nav-profile {
+  min-width: 0;
+  max-width: 260px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: .85rem;
+  color: var(--ink-soft);
+}
+.nav-profile strong { color: var(--gold); }
+.nav-logout { flex: 0 0 auto; white-space: nowrap; }
+
+@media (max-width: 780px) {
   .app-navbar {
-    display: block !important;
-    padding: .7rem .75rem !important;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: .45rem;
+    padding: .6rem .7rem .5rem;
   }
   .nav-top-row {
-    width: 100%;
-    min-width: 0;
     display: flex;
     align-items: center;
     justify-content: space-between;
-    gap: .65rem;
-  }
-  .nav-top-row > span {
-    flex: 0 0 auto;
-  }
-  .nav-account {
-    width: auto !important;
-    max-width: calc(100% - 4.5rem);
-    min-width: 0;
-    justify-content: flex-end;
-    gap: .45rem !important;
-  }
-  .nav-account > span {
-    min-width: 0;
-    max-width: 150px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-size: .72rem !important;
-  }
-  .nav-account .btn {
-    flex: 0 0 auto;
-    padding: .52rem .68rem;
-    font-size: .75rem;
-  }
-  .main-nav {
+    gap: .5rem;
     width: 100%;
-    margin-top: .6rem;
-    overflow-x: auto;
-    padding: .15rem .05rem .2rem;
+    min-width: 0;
+  }
+  .nav-brand { flex: 0 0 auto; min-width: 0; }
+  .nav-brand span { font-size: 1.1rem; }
+  .app-navbar .nav-account {
+    position: static;
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    justify-self: auto;
+    gap: .35rem;
+  }
+  .nav-profile {
+    flex: 1 1 auto;
+    min-width: 0;
+    max-width: none;
+    text-align: right;
+    font-size: .7rem;
+    line-height: 1.2;
+  }
+  .nav-logout {
+    padding: .45rem .58rem;
+    font-size: .72rem;
+  }
+  .app-navbar .main-nav {
+    grid-column: auto;
+    grid-row: auto;
+    width: 100%;
+    min-width: 0;
     justify-content: flex-start;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding: .05rem 0 .15rem;
     -webkit-overflow-scrolling: touch;
     scrollbar-width: none;
+    touch-action: pan-x;
   }
-  .main-nav::-webkit-scrollbar { display: none; }
-  .main-nav a { flex: 0 0 auto; white-space: nowrap; }
+  .app-navbar .main-nav::-webkit-scrollbar { display: none; }
 }
 
-
-/* Navbar layout: desktop keeps logo, tabs and account on one row. */
-.app-navbar { display:grid !important; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; }
-.nav-top-row { display:contents; }
-.app-navbar .main-nav { justify-content:flex-start; }
+@media (max-width: 380px) {
+  .app-navbar { padding-left: .6rem; padding-right: .6rem; }
+  .nav-profile { max-width: 105px; font-size: .66rem; }
+  .nav-logout { padding: .42rem .52rem; font-size: .69rem; }
+}
 
 /* Professional transaction history */
 .history-card { overflow: hidden; min-width: 0; max-width: 100%; }
