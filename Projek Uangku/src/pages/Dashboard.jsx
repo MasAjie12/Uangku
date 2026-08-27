@@ -15,6 +15,7 @@ export default function Dashboard() {
   const [hapusTanggal, setHapusTanggal] = useState(() => toISODateLocal(new Date()))
   const [deleting, setDeleting] = useState(false)
   const [saldoAwal, setSaldoAwal] = useState(0)
+  const { session, profile } = useAuth()
 
   const muatData = useCallback(async () => {
     const { data } = await supabase
@@ -23,10 +24,14 @@ export default function Dashboard() {
       .order('created_at', { ascending: false })
       .limit(200)
     setItems(data || [])
-    const { data: prof } = await supabase.from('profiles').select('keluarga_id, keluarga(saldo_awal)').eq('id', session?.user?.id || '').single()
-    setSaldoAwal(Number(prof?.keluarga?.saldo_awal || 0))
+    if (profile?.keluarga_id) {
+      const { data: prof } = await supabase.from('profiles').select('keluarga_id, keluarga(saldo_awal)').eq('id', session?.user?.id || '').maybeSingle()
+      setSaldoAwal(Number(prof?.keluarga?.saldo_awal || 0))
+    } else {
+      setSaldoAwal(0)
+    }
     setLoading(false)
-  }, [session])
+  }, [session, profile?.keluarga_id])
 
   useEffect(() => {
     muatData()
