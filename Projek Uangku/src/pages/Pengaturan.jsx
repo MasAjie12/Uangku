@@ -10,6 +10,9 @@ export default function Pengaturan() {
   const [savingId, setSavingId] = useState(null)
   const [pesan, setPesan] = useState('')
   const [disalin, setDisalin] = useState(false)
+  const [editNamaKeluarga, setEditNamaKeluarga] = useState(false)
+  const [namaKeluargaDraft, setNamaKeluargaDraft] = useState('')
+  const [savingKeluarga, setSavingKeluarga] = useState(false)
 
   useEffect(() => {
     muatAnggota()
@@ -19,6 +22,25 @@ export default function Pengaturan() {
   async function muatKeluarga() {
     const { data } = await supabase.from('keluarga').select('*').single()
     setKeluarga(data)
+    if (data) setNamaKeluargaDraft(data.nama)
+  }
+
+  async function simpanNamaKeluarga() {
+    if (!namaKeluargaDraft.trim()) return
+    setSavingKeluarga(true)
+    setPesan('')
+    const { error } = await supabase
+      .from('keluarga')
+      .update({ nama: namaKeluargaDraft.trim() })
+      .eq('id', keluarga.id)
+    setSavingKeluarga(false)
+    if (error) {
+      setPesan('Gagal mengubah nama keluarga: ' + error.message)
+      return
+    }
+    setKeluarga((k) => ({ ...k, nama: namaKeluargaDraft.trim() }))
+    setEditNamaKeluarga(false)
+    setPesan('Nama keluarga diubah.')
   }
 
   async function muatAnggota() {
@@ -63,7 +85,29 @@ export default function Pengaturan() {
       {keluarga && (
         <div className="card" style={{ padding: '1.2rem 1.4rem', marginBottom: '1.4rem', background: '#FFFDF7' }}>
           <div style={{ fontSize: '0.8rem', color: '#8A7F68', marginBottom: '0.2rem' }}>Nama keluarga</div>
-          <div style={{ fontWeight: 700, fontSize: '1.05rem', marginBottom: '0.9rem' }}>{keluarga.nama}</div>
+          {editNamaKeluarga ? (
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.9rem', flexWrap: 'wrap' }}>
+              <input
+                value={namaKeluargaDraft}
+                onChange={(e) => setNamaKeluargaDraft(e.target.value)}
+                style={{ flex: 1, minWidth: 160, border: '1px solid #DED4BE', borderRadius: 10, padding: '0.5rem 0.7rem' }}
+                autoFocus
+              />
+              <button className="btn btn-primary" onClick={simpanNamaKeluarga} disabled={savingKeluarga}>
+                {savingKeluarga ? 'Menyimpan…' : 'Simpan'}
+              </button>
+              <button className="btn btn-ghost" onClick={() => { setEditNamaKeluarga(false); setNamaKeluargaDraft(keluarga.nama) }}>
+                Batal
+              </button>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '0.9rem' }}>
+              <span style={{ fontWeight: 700, fontSize: '1.05rem' }}>{keluarga.nama}</span>
+              <button className="btn btn-ghost" onClick={() => setEditNamaKeluarga(true)} style={{ fontSize: '0.78rem', padding: '0.3rem 0.7rem' }}>
+                Ubah
+              </button>
+            </div>
+          )}
           <div style={{ fontSize: '0.8rem', color: '#8A7F68', marginBottom: '0.2rem' }}>Kode undangan</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.7rem', flexWrap: 'wrap' }}>
             <span className="mono" style={{ fontSize: '1.4rem', fontWeight: 700, letterSpacing: '0.2em', color: '#C79A3D' }}>
