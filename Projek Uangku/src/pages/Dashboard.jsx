@@ -85,7 +85,7 @@ export default function Dashboard() {
 
       <div className="dashboard-grid" style={{ display: 'grid', gridTemplateColumns: 'minmax(280px, 380px) 1fr', gap: '1.4rem', alignItems: 'start' }}>
         <TransaksiForm onSaved={muatData} />
-        <div>
+        <div style={{ minWidth: 0 }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.8rem', alignItems: 'center', marginBottom: '0.7rem', flexWrap: 'wrap' }}>
             <h3 style={{ fontSize: '1.05rem', margin: 0 }}>Histori Terbaru</h3>
             <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>{filteredItems.length} transaksi</span>
