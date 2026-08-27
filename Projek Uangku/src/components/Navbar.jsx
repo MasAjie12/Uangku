@@ -23,7 +23,7 @@ export default function Navbar() {
   })
 
   return (
-    <div style={{
+    <div className="app-navbar" style={{
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'space-between',
@@ -36,24 +36,24 @@ export default function Navbar() {
       flexWrap: 'wrap',
       gap: '0.6rem',
     }}>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '1.6rem', flexWrap: 'wrap' }}>
+      <div className="nav-top-row">
         <span style={{ fontFamily: 'Fraunces, serif', fontSize: '1.25rem', fontWeight: 700, color: '#16332B' }}>
           Uangku
         </span>
-        <nav className="main-nav" style={{ display: 'flex', gap: '0.4rem' }}>
-          <NavLink to="/" style={linkStyle} end>Catat</NavLink>
-          <NavLink to="/laporan" style={linkStyle}>Laporan</NavLink>
-          <NavLink to="/pengaturan" style={linkStyle}>Pengaturan</NavLink>
-        </nav>
-      </div>
-      <div className="nav-account" style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
+        <div className="nav-account" style={{ display: 'flex', alignItems: 'center', gap: '0.9rem' }}>
         {profile && (
           <span style={{ fontSize: '0.85rem', color: '#3C554C' }}>
             {profile.nama_tampilan} · <strong style={{ color: '#C79A3D' }}>{profile.peran}</strong>
           </span>
         )}
-        <button className="btn btn-ghost" onClick={logout}>Keluar</button>
+          <button className="btn btn-ghost" onClick={logout}>Keluar</button>
+        </div>
       </div>
+      <nav className="main-nav" style={{ display: 'flex', gap: '0.4rem' }}>
+        <NavLink to="/" style={linkStyle} end>Catat</NavLink>
+        <NavLink to="/laporan" style={linkStyle}>Laporan</NavLink>
+        <NavLink to="/pengaturan" style={linkStyle}>Pengaturan</NavLink>
+      </nav>
     </div>
   )
 }
