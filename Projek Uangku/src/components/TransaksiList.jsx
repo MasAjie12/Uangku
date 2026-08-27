@@ -16,26 +16,61 @@ export default function TransaksiList({ items, onChanged }) {
     onChanged && onChanged()
   }
 
-  if (!items.length) return <div className="card" style={{ padding: '2rem', textAlign: 'center', color: '#3C554C' }}>Belum ada catatan pada pencarian ini.</div>
+  if (!items.length) return <div className="card history-empty">Belum ada catatan pada pencarian ini.</div>
 
   return <>
-    <div className="card" style={{ padding: '0.4rem 0' }}>
-      {shown.map((tx, idx) => <div key={tx.id} style={{ display:'flex', justifyContent:'space-between', gap:'1rem', padding:'0.9rem 1.3rem', borderTop:idx===0?'none':'1px solid #EFE9D9' }}>
-        <div style={{ minWidth:0 }}>
-          <div style={{fontWeight:600,fontSize:'.95rem',color:'#16332B'}}>{tx.kategori}{tx.sumber_tujuan&&<span style={{fontWeight:400,color:'#3C554C'}}> · {tx.sumber_tujuan}</span>}</div>
-          {tx.keterangan&&<div style={{fontSize:'.85rem',color:'#3C554C',marginTop:2}}>{tx.keterangan}</div>}
-          <div style={{fontSize:'.78rem',color:'#3C554C',marginTop:6}}><strong>Tanggal transaksi:</strong> {formatTanggal(tx.tanggal)}</div>
-          <div style={{fontSize:'.74rem',color:'#8A7F68',marginTop:3}}>Dicatat oleh <strong>{tx.profiles?.nama_tampilan||'—'}</strong> ({tx.profiles?.peran||'Anggota'}) · waktu pencatatan {formatTanggalJam(tx.created_at)}</div>
+    <div className="history-card card">
+      <div className="history-toolbar">
+        <div>
+          <div className="history-title">Riwayat transaksi</div>
+          <div className="history-subtitle">Geser tabel ke samping pada layar HP untuk melihat semua informasi.</div>
         </div>
-        <div style={{textAlign:'right',display:'flex',flexDirection:'column',alignItems:'flex-end',gap:6}}>
-          <div className="mono" style={{fontWeight:700,color:tx.tipe==='pemasukan'?'#2F7A54':'#B1483A',whiteSpace:'nowrap'}}>{tx.tipe==='pemasukan'?'+':'−'}{formatRupiah(tx.jumlah)}</div>
-          {tx.user_id===session.user.id&&<div style={{display:'flex',gap:8}}><button onClick={()=>setEditing(tx)} className="text-button">Edit</button><button onClick={()=>hapus(tx.id)} className="text-button danger-text">Hapus</button></div>}
-        </div>
-      </div>)}
+        <div className="history-count">{items.length} transaksi</div>
+      </div>
+
+      <div className="history-scroll" role="region" aria-label="Histori transaksi" tabIndex="0">
+        <table className="history-table">
+          <thead>
+            <tr>
+              <th>Tanggal</th>
+              <th>Jenis</th>
+              <th>Kategori</th>
+              <th>Nominal</th>
+              <th>Sumber / Tujuan</th>
+              <th>Keterangan</th>
+              <th>Dicatat oleh</th>
+              <th>Waktu pencatatan</th>
+              <th>Aksi</th>
+            </tr>
+          </thead>
+          <tbody>
+            {shown.map((tx) => {
+              const masuk = tx.tipe === 'pemasukan'
+              const milikSaya = tx.user_id === session.user.id
+              return <tr key={tx.id}>
+                <td className="history-date">{formatTanggal(tx.tanggal)}</td>
+                <td><span className={`transaction-badge ${masuk ? 'income' : 'expense'}`}>{masuk ? 'Pemasukan' : 'Pengeluaran'}</span></td>
+                <td className="history-main">{tx.kategori}</td>
+                <td className={`history-amount mono ${masuk ? 'income-text' : 'expense-text'}`}>{masuk ? '+' : '−'}{formatRupiah(tx.jumlah)}</td>
+                <td>{tx.sumber_tujuan || <span className="muted">—</span>}</td>
+                <td className="history-wrap">{tx.keterangan || <span className="muted">—</span>}</td>
+                <td><strong>{tx.profiles?.nama_tampilan || '—'}</strong><small className="history-role">{tx.profiles?.peran || 'Anggota'}</small></td>
+                <td className="history-created">{formatTanggalJam(tx.created_at)}</td>
+                <td>
+                  {milikSaya ? <div className="history-actions"><button onClick={() => setEditing(tx)} className="text-button">Edit</button><button onClick={() => hapus(tx.id)} className="text-button danger-text">Hapus</button></div> : <span className="muted">—</span>}
+                </td>
+              </tr>
+            })}
+          </tbody>
+        </table>
+      </div>
+
+      <div className="history-scroll-hint"><span>↔</span> Geser ke samping untuk melihat kolom lainnya</div>
     </div>
-    {visible < items.length && <button className="btn btn-ghost load-more" onClick={()=>setVisible(v=>v+5)}>Lihat Selengkapnya ({Math.min(5, items.length-visible)} lagi)</button>}
-    {visible >= items.length && items.length > 5 && <button className="btn btn-ghost load-more" onClick={()=>setVisible(5)}>Tampilkan lebih sedikit</button>}
-    {editing && <EditModal tx={editing} onClose={()=>setEditing(null)} onSaved={()=>{setEditing(null);onChanged&&onChanged()}} />}
+
+    {visible < items.length && <button className="btn btn-ghost load-more" onClick={() => setVisible(v => v + 5)}>Lihat Selengkapnya ({Math.min(5, items.length - visible)} lagi)</button>}
+    {visible >= items.length && items.length > 5 && <button className="btn btn-ghost load-more" onClick={() => setVisible(5)}>Tampilkan lebih sedikit</button>}
+    {editing && <EditModal tx={editing} onClose={() => setEditing(null)} onSaved={() => { setEditing(null); onChanged && onChanged() }} />}
   </>
 }
 
