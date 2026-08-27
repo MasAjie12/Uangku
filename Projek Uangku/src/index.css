@@ -193,11 +193,59 @@ body { overflow-x: hidden; }
 }
 
 @media (max-width: 600px) {
-  .main-nav { width: 100%; overflow-x: auto; padding-bottom: .1rem; }
+  .app-navbar {
+    display: block !important;
+    padding: .7rem .75rem !important;
+  }
+  .nav-top-row {
+    width: 100%;
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: .65rem;
+  }
+  .nav-top-row > span {
+    flex: 0 0 auto;
+  }
+  .nav-account {
+    width: auto !important;
+    max-width: calc(100% - 4.5rem);
+    min-width: 0;
+    justify-content: flex-end;
+    gap: .45rem !important;
+  }
+  .nav-account > span {
+    min-width: 0;
+    max-width: 150px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: .72rem !important;
+  }
+  .nav-account .btn {
+    flex: 0 0 auto;
+    padding: .52rem .68rem;
+    font-size: .75rem;
+  }
+  .main-nav {
+    width: 100%;
+    margin-top: .6rem;
+    overflow-x: auto;
+    padding: .15rem .05rem .2rem;
+    justify-content: flex-start;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .main-nav::-webkit-scrollbar { display: none; }
   .main-nav a { flex: 0 0 auto; white-space: nowrap; }
-  .nav-account { width: 100%; justify-content: space-between; }
-  .nav-account > span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 }
+
+
+/* Navbar layout: desktop keeps logo, tabs and account on one row. */
+.app-navbar { display:grid !important; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; }
+.nav-top-row { display:contents; }
+.app-navbar .main-nav { justify-content:flex-start; }
 
 /* Professional transaction history */
 .history-card { overflow: hidden; min-width: 0; max-width: 100%; }
