@@ -35,7 +35,7 @@ export default function Login() {
         <form onSubmit={handleSubmit}>
           <div className="field">
             <label>Username</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus placeholder="mis. ayah" />
+            <input value={username} onChange={(e) => setUsername(e.target.value)} required autoFocus placeholder="mis. aji123" />
           </div>
           <div className="field">
             <label>Kata sandi</label>
