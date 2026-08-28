@@ -91,11 +91,11 @@ export default function Register() {
 
           <div className="field">
             <label>Username</label>
-            <input value={username} onChange={(e) => setUsername(e.target.value)} required placeholder="mis. aji123" />
+            <input value={username} onChange={(e) => setUsername(e.target.value)} required placeholder="mis. ayah" />
           </div>
           <div className="field">
             <label>Nama tampilan</label>
-            <input value={namaTampilan} onChange={(e) => setNamaTampilan(e.target.value)} placeholder="mis. Aji Setiawan />
+            <input value={namaTampilan} onChange={(e) => setNamaTampilan(e.target.value)} placeholder="mis. Pak Budi" />
           </div>
           <div className="field">
             <label>Peran di keluarga</label>
