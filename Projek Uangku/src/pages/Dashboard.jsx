@@ -20,7 +20,6 @@ export default function Dashboard() {
     toISODateLocal(new Date()),
   );
   const [deleting, setDeleting] = useState(false);
-  const [saldoAwal, setSaldoAwal] = useState(0);
   const [semuaRingkasan, setSemuaRingkasan] = useState([]);
   const tanggalAwal = awalBulanIni();
   const tanggalAkhir = toISODateLocal(new Date());
@@ -41,16 +40,6 @@ export default function Dashboard() {
       .order("created_at", { ascending: false })
       .limit(200);
     setItems(data || []);
-    if (profile?.keluarga_id) {
-      const { data: prof } = await supabase
-        .from("profiles")
-        .select("keluarga_id, keluarga(saldo_awal)")
-        .eq("id", session?.user?.id || "")
-        .maybeSingle();
-      setSaldoAwal(Number(prof?.keluarga?.saldo_awal || 0));
-    } else {
-      setSaldoAwal(0);
-    }
     setLoading(false);
   }, [session, profile?.keluarga_id]);
 
@@ -82,17 +71,9 @@ export default function Dashboard() {
     .filter((t) => t.tipe === "pengeluaran")
     .reduce((s, t) => s + Number(t.jumlah), 0);
 
-  // Saldo dihitung sebagai saldo kas per akhir tanggal yang dipilih (saldo awal
-  // ditambah seluruh riwayat sampai tanggal itu), bukan cuma selisih di periode
-  // ini saja — supaya angkanya tetap masuk akal seperti cek saldo di buku kas.
-  const kumulatifSampaiAkhir = useMemo(
-    () => semuaRingkasan.filter((t) => t.tanggal <= tanggalAkhir),
-    [semuaRingkasan, tanggalAkhir],
-  );
-  const saldoPerTanggal =
-    saldoAwal +
-    kumulatifSampaiAkhir.filter((t) => t.tipe === "pemasukan").reduce((s, t) => s + Number(t.jumlah), 0) -
-    kumulatifSampaiAkhir.filter((t) => t.tipe === "pengeluaran").reduce((s, t) => s + Number(t.jumlah), 0);
+  // Saldo dihitung murni dari data bulan ini saja (pemasukan - pengeluaran
+  // bulan berjalan), tidak digabung dengan saldo awal atau bulan-bulan lain.
+  const saldoPerTanggal = totalMasukPeriode - totalKeluarPeriode;
 
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -163,19 +144,12 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="card" style={{ padding: "1rem 1.2rem", marginBottom: "0.9rem" }}>
-        <p style={{ fontSize: "0.76rem", color: "#8A7F68", margin: 0 }}>
-          Total Pemasukan & Pengeluaran menampilkan jumlah bulan ini. Saldo menunjukkan saldo kas per hari ini (termasuk saldo awal & seluruh riwayat sebelumnya).
-        </p>
-      </div>
-
       <h3 style={{ fontSize: "1.1rem", margin: "0 0 0.7rem" }}>Keuangan Anda Bulan Ini</h3>
 
       <div className="professional-dashboard-section" style={{ marginBottom: "1.4rem" }}>
         <SummaryCards
           totalMasuk={totalMasukPeriode}
           totalKeluar={totalKeluarPeriode}
-          saldoAwal={saldoAwal}
           saldo={saldoPerTanggal}
         />
       </div>
