@@ -5,7 +5,6 @@ import TransaksiForm from "../components/TransaksiForm";
 import TransaksiList from "../components/TransaksiList";
 import SummaryCards from "../components/SummaryCards";
 import { formatTanggal, getWeekRange, toISODateLocal } from "../utils";
-import ProfessionalTools from "../components/ProfessionalTools";
 
 export default function Dashboard() {
   const [items, setItems] = useState([]);
@@ -128,15 +127,7 @@ export default function Dashboard() {
         </p>
       </div>
 
-      <div className="professional-dashboard-section">
-        <ProfessionalTools
-          transactions={items}
-          saldoAwal={saldoAwal}
-          onSaldoAwalSaved={(v) => setSaldoAwal(v)}
-        />
-      </div>
-
-      <div style={{ marginBottom: "1.4rem" }}>
+      <div className="professional-dashboard-section" style={{ marginBottom: "1.4rem" }}>
         <SummaryCards
           totalMasuk={totalMasuk}
           totalKeluar={totalKeluar}
