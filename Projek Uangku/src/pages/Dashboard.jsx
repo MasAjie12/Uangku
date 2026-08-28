@@ -6,6 +6,11 @@ import TransaksiList from "../components/TransaksiList";
 import SummaryCards from "../components/SummaryCards";
 import { formatTanggal, getWeekRange, toISODateLocal } from "../utils";
 
+function awalBulanIni() {
+  const d = new Date();
+  return toISODateLocal(new Date(d.getFullYear(), d.getMonth(), 1));
+}
+
 export default function Dashboard() {
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,8 +22,8 @@ export default function Dashboard() {
   const [deleting, setDeleting] = useState(false);
   const [saldoAwal, setSaldoAwal] = useState(0);
   const [semuaRingkasan, setSemuaRingkasan] = useState([]);
-  const [tanggalAwal, setTanggalAwal] = useState(() => toISODateLocal(new Date()));
-  const [tanggalAkhir, setTanggalAkhir] = useState(() => toISODateLocal(new Date()));
+  const tanggalAwal = awalBulanIni();
+  const tanggalAkhir = toISODateLocal(new Date());
   const { session, profile } = useAuth();
 
   const muatRingkasan = useCallback(async () => {
@@ -65,28 +70,6 @@ export default function Dashboard() {
       .subscribe();
     return () => supabase.removeChannel(channel);
   }, [muatData, muatRingkasan]);
-
-  function terapkanPresetRingkasan(preset) {
-    const now = new Date();
-    if (preset === "hari") {
-      setTanggalAwal(toISODateLocal(now));
-      setTanggalAkhir(toISODateLocal(now));
-    }
-    if (preset === "7hari") {
-      const awal = new Date(now);
-      awal.setDate(now.getDate() - 6);
-      setTanggalAwal(toISODateLocal(awal));
-      setTanggalAkhir(toISODateLocal(now));
-    }
-    if (preset === "bulan") {
-      setTanggalAwal(toISODateLocal(new Date(now.getFullYear(), now.getMonth(), 1)));
-      setTanggalAkhir(toISODateLocal(now));
-    }
-    if (preset === "semua") {
-      setTanggalAwal(semuaRingkasan.length ? semuaRingkasan[0].tanggal : toISODateLocal(now));
-      setTanggalAkhir(toISODateLocal(now));
-    }
-  }
 
   const periodeRingkasan = useMemo(
     () => semuaRingkasan.filter((t) => t.tanggal >= tanggalAwal && t.tanggal <= tanggalAkhir),
@@ -181,32 +164,12 @@ export default function Dashboard() {
       </div>
 
       <div className="card" style={{ padding: "1rem 1.2rem", marginBottom: "0.9rem" }}>
-        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.9rem" }}>
-          {[
-            ["hari", "Hari Ini"],
-            ["7hari", "7 Hari Terakhir"],
-            ["bulan", "Bulan Ini"],
-            ["semua", "Semua"],
-          ].map(([k, l]) => (
-            <button key={k} type="button" className="btn btn-ghost" onClick={() => terapkanPresetRingkasan(k)} style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>
-              {l}
-            </button>
-          ))}
-        </div>
-        <div style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap", alignItems: "flex-end" }}>
-          <div className="field" style={{ margin: 0 }}>
-            <label>Dari tanggal</label>
-            <input type="date" value={tanggalAwal} max={tanggalAkhir} onChange={(e) => setTanggalAwal(e.target.value)} />
-          </div>
-          <div className="field" style={{ margin: 0 }}>
-            <label>Sampai tanggal</label>
-            <input type="date" value={tanggalAkhir} min={tanggalAwal} max={toISODateLocal(new Date())} onChange={(e) => setTanggalAkhir(e.target.value)} />
-          </div>
-        </div>
-        <p style={{ fontSize: "0.76rem", color: "#8A7F68", marginTop: "0.8rem", marginBottom: 0 }}>
-          Total Pemasukan & Pengeluaran menampilkan jumlah pada rentang ini. Saldo menunjukkan saldo kas per akhir tanggal yang dipilih (termasuk saldo awal & seluruh riwayat sebelumnya).
+        <p style={{ fontSize: "0.76rem", color: "#8A7F68", margin: 0 }}>
+          Total Pemasukan & Pengeluaran menampilkan jumlah bulan ini. Saldo menunjukkan saldo kas per hari ini (termasuk saldo awal & seluruh riwayat sebelumnya).
         </p>
       </div>
+
+      <h3 style={{ fontSize: "1.1rem", margin: "0 0 0.7rem" }}>Keuangan Anda Bulan Ini</h3>
 
       <div className="professional-dashboard-section" style={{ marginBottom: "1.4rem" }}>
         <SummaryCards
@@ -226,7 +189,10 @@ export default function Dashboard() {
           alignItems: "start",
         }}
       >
-        <TransaksiForm onSaved={muatData} />
+        <div style={{ minWidth: 0 }}>
+          <h3 style={{ fontSize: "1.05rem", margin: "0 0 0.7rem" }}>Catat Uang Anda</h3>
+          <TransaksiForm onSaved={muatData} />
+        </div>
         <div style={{ minWidth: 0 }}>
           <div
             style={{
