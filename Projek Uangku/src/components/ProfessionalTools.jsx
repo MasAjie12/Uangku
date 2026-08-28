@@ -1,7 +1,19 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { supabase } from "../supabaseClient";
 import { useAuth } from "../App";
-import { formatRupiah, toISODateLocal } from "../utils";
+import {
+  formatRupiah,
+  toISODateLocal,
+  formatNominalInput,
+  parseNominalInput,
+} from "../utils";
+
+const TABEL = {
+  budget: "anggaran",
+  repeat: "transaksi_berulang",
+  goal: "target_tabungan",
+  bill: "tagihan",
+};
 
 export default function ProfessionalTools({
   transactions = [],
@@ -32,6 +44,13 @@ export default function ProfessionalTools({
     sumber_tujuan: "",
     keterangan: "",
   });
+
+  // ---- state untuk edit inline ----
+  const [editSection, setEditSection] = useState(null); // 'budget' | 'repeat' | 'goal' | 'bill'
+  const [editId, setEditId] = useState(null);
+  const [editData, setEditData] = useState({});
+  const [savingEdit, setSavingEdit] = useState(false);
+
   const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
 
   async function load() {
@@ -189,6 +208,141 @@ export default function ProfessionalTools({
     if (error) return alert(error.message);
     load();
   }
+
+  // ---- fungsi generik untuk edit & hapus ----
+  function startEdit(section, item) {
+    setEditSection(section);
+    setEditId(item.id);
+    if (section === "budget") {
+      setEditData({
+        kategori: item.kategori,
+        batas: formatNominalInput(item.batas),
+      });
+    } else if (section === "repeat") {
+      setEditData({
+        tipe: item.tipe,
+        kategori: item.kategori,
+        jumlah: formatNominalInput(item.jumlah),
+        frekuensi: item.frekuensi,
+        tanggal_berikutnya: item.tanggal_berikutnya,
+        sumber_tujuan: item.sumber_tujuan || "",
+        keterangan: item.keterangan || "",
+      });
+    } else if (section === "goal") {
+      setEditData({
+        nama: item.nama,
+        target: formatNominalInput(item.target),
+        terkumpul: formatNominalInput(item.terkumpul),
+        tenggat: item.tenggat || "",
+      });
+    } else if (section === "bill") {
+      setEditData({
+        nama: item.nama,
+        nominal: formatNominalInput(item.nominal),
+        jatuh_tempo: item.jatuh_tempo,
+      });
+    }
+  }
+
+  function cancelEdit() {
+    setEditSection(null);
+    setEditId(null);
+    setEditData({});
+  }
+
+  async function saveEdit() {
+    setSavingEdit(true);
+    let error;
+    if (editSection === "budget") {
+      const batas = parseNominalInput(editData.batas);
+      if (!batas) {
+        setSavingEdit(false);
+        return alert("Batas anggaran harus lebih dari 0.");
+      }
+      if (!editData.kategori) {
+        setSavingEdit(false);
+        return alert("Pilih kategori terlebih dahulu.");
+      }
+      ({ error } = await supabase
+        .from("anggaran")
+        .update({ kategori: editData.kategori, batas })
+        .eq("id", editId));
+    } else if (editSection === "repeat") {
+      const jumlah = parseNominalInput(editData.jumlah);
+      if (!jumlah) {
+        setSavingEdit(false);
+        return alert("Nominal harus lebih dari 0.");
+      }
+      if (!editData.kategori.trim()) {
+        setSavingEdit(false);
+        return alert("Kategori tidak boleh kosong.");
+      }
+      ({ error } = await supabase
+        .from("transaksi_berulang")
+        .update({
+          tipe: editData.tipe,
+          kategori: editData.kategori.trim(),
+          jumlah,
+          frekuensi: editData.frekuensi,
+          tanggal_berikutnya: editData.tanggal_berikutnya,
+          sumber_tujuan: editData.sumber_tujuan.trim() || null,
+          keterangan: editData.keterangan.trim() || null,
+        })
+        .eq("id", editId));
+    } else if (editSection === "goal") {
+      const target = parseNominalInput(editData.target);
+      const terkumpul = parseNominalInput(editData.terkumpul);
+      if (!target) {
+        setSavingEdit(false);
+        return alert("Target tabungan harus lebih dari 0.");
+      }
+      if (!editData.nama.trim()) {
+        setSavingEdit(false);
+        return alert("Nama target tidak boleh kosong.");
+      }
+      ({ error } = await supabase
+        .from("target_tabungan")
+        .update({
+          nama: editData.nama.trim(),
+          target,
+          terkumpul,
+          tenggat: editData.tenggat || null,
+        })
+        .eq("id", editId));
+    } else if (editSection === "bill") {
+      const nominal = parseNominalInput(editData.nominal);
+      if (!nominal) {
+        setSavingEdit(false);
+        return alert("Nominal tagihan harus lebih dari 0.");
+      }
+      if (!editData.nama.trim()) {
+        setSavingEdit(false);
+        return alert("Nama tagihan tidak boleh kosong.");
+      }
+      ({ error } = await supabase
+        .from("tagihan")
+        .update({
+          nama: editData.nama.trim(),
+          nominal,
+          jatuh_tempo: editData.jatuh_tempo,
+        })
+        .eq("id", editId));
+    }
+    setSavingEdit(false);
+    if (error) return alert(error.message);
+    cancelEdit();
+    load();
+  }
+
+  async function hapusItem(section, id, label) {
+    if (!confirm(`Hapus ${label} ini? Tindakan ini tidak bisa dibatalkan.`))
+      return;
+    const { error } = await supabase.from(TABEL[section]).delete().eq("id", id);
+    if (error) return alert(error.message);
+    if (editId === id) cancelEdit();
+    load();
+  }
+
   const tabs = [
     [
       "budget",
@@ -217,6 +371,13 @@ export default function ProfessionalTools({
     ],
   ];
   const activeTab = tabs.find(([k]) => k === tab) || tabs[0];
+
+  // reset mode edit setiap kali pindah tab
+  function gantiTab(k) {
+    cancelEdit();
+    setTab(k);
+  }
+
   return (
     <div className="card professional-card">
       <div className="pro-head">
@@ -233,7 +394,7 @@ export default function ProfessionalTools({
           <button
             key={k}
             className={tab === k ? "active" : ""}
-            onClick={() => setTab(k)}
+            onClick={() => gantiTab(k)}
           >
             {l}
           </button>
@@ -263,9 +424,7 @@ export default function ProfessionalTools({
               onChange={(e) =>
                 setForm({
                   ...form,
-                  batas: e.target.value
-                    .replace(/\D/g, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                  batas: formatNominalInput(e.target.value),
                 })
               }
               required
@@ -291,6 +450,52 @@ export default function ProfessionalTools({
               .map((b) => {
                 const used = spentByCategory[b.kategori] || 0;
                 const pct = Math.min(100, (used / Number(b.batas)) * 100);
+                const editing = editSection === "budget" && editId === b.id;
+                if (editing) {
+                  return (
+                    <div className="pro-row" key={b.id}>
+                      <div className="inline-form" style={{ gridColumn: "1 / -1" }}>
+                        <select
+                          value={editData.kategori}
+                          onChange={(e) =>
+                            setEditData({ ...editData, kategori: e.target.value })
+                          }
+                        >
+                          <option value="">Kategori</option>
+                          {categories.map((c) => (
+                            <option key={c.nama}>{c.nama}</option>
+                          ))}
+                        </select>
+                        <input
+                          inputMode="numeric"
+                          placeholder="Batas Rp"
+                          value={editData.batas}
+                          onChange={(e) =>
+                            setEditData({
+                              ...editData,
+                              batas: formatNominalInput(e.target.value),
+                            })
+                          }
+                        />
+                        <button
+                          className="btn btn-primary"
+                          type="button"
+                          disabled={savingEdit}
+                          onClick={saveEdit}
+                        >
+                          {savingEdit ? "Menyimpan…" : "Simpan"}
+                        </button>
+                        <button
+                          className="btn btn-ghost"
+                          type="button"
+                          onClick={cancelEdit}
+                        >
+                          Batal
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
                 return (
                   <div className="pro-row" key={b.id}>
                     <div>
@@ -312,7 +517,25 @@ export default function ProfessionalTools({
                         }}
                       />
                     </div>
-                    <b>{Math.round(pct)}%</b>
+                    <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: ".35rem" }}>
+                      <b>{Math.round(pct)}%</b>
+                      <div style={{ display: "flex", gap: ".35rem" }}>
+                        <button
+                          className="btn btn-ghost"
+                          style={{ fontSize: ".72rem", padding: ".35rem .55rem" }}
+                          onClick={() => startEdit("budget", b)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          className="btn btn-danger"
+                          style={{ fontSize: ".72rem", padding: ".35rem .55rem" }}
+                          onClick={() => hapusItem("budget", b.id, "anggaran")}
+                        >
+                          Hapus
+                        </button>
+                      </div>
+                    </div>
                   </div>
                 );
               })}
@@ -342,9 +565,7 @@ export default function ProfessionalTools({
               onChange={(e) =>
                 setForm({
                   ...form,
-                  nominal: e.target.value
-                    .replace(/\D/g, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                  nominal: formatNominalInput(e.target.value),
                 })
               }
               required
@@ -368,24 +589,119 @@ export default function ProfessionalTools({
             <button className="btn btn-primary">Tambah</button>
           </form>
           <div className="pro-list">
-            {repeat.map((r) => (
-              <div className="pro-row" key={r.id}>
-                <div>
-                  <strong>
-                    {r.kategori} · {formatRupiah(r.jumlah)}
-                  </strong>
-                  <small>
-                    {r.frekuensi} · berikutnya {r.tanggal_berikutnya}
-                  </small>
+            {repeat.map((r) => {
+              const editing = editSection === "repeat" && editId === r.id;
+              if (editing) {
+                return (
+                  <div className="pro-row" key={r.id}>
+                    <div className="inline-form" style={{ gridColumn: "1 / -1" }}>
+                      <select
+                        value={editData.tipe}
+                        onChange={(e) =>
+                          setEditData({ ...editData, tipe: e.target.value })
+                        }
+                      >
+                        <option value="pengeluaran">Pengeluaran</option>
+                        <option value="pemasukan">Pemasukan</option>
+                      </select>
+                      <input
+                        placeholder="Kategori"
+                        value={editData.kategori}
+                        onChange={(e) =>
+                          setEditData({ ...editData, kategori: e.target.value })
+                        }
+                      />
+                      <input
+                        inputMode="numeric"
+                        placeholder="Nominal"
+                        value={editData.jumlah}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            jumlah: formatNominalInput(e.target.value),
+                          })
+                        }
+                      />
+                      <select
+                        value={editData.frekuensi}
+                        onChange={(e) =>
+                          setEditData({ ...editData, frekuensi: e.target.value })
+                        }
+                      >
+                        <option>harian</option>
+                        <option>mingguan</option>
+                        <option>bulanan</option>
+                        <option>tahunan</option>
+                      </select>
+                      <input
+                        type="date"
+                        value={editData.tanggal_berikutnya}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            tanggal_berikutnya: e.target.value,
+                          })
+                        }
+                      />
+                      <input
+                        placeholder="Sumber/Tujuan (opsional)"
+                        value={editData.sumber_tujuan}
+                        onChange={(e) =>
+                          setEditData({ ...editData, sumber_tujuan: e.target.value })
+                        }
+                      />
+                      <input
+                        placeholder="Keterangan (opsional)"
+                        value={editData.keterangan}
+                        onChange={(e) =>
+                          setEditData({ ...editData, keterangan: e.target.value })
+                        }
+                      />
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        disabled={savingEdit}
+                        onClick={saveEdit}
+                      >
+                        {savingEdit ? "Menyimpan…" : "Simpan"}
+                      </button>
+                      <button className="btn btn-ghost" type="button" onClick={cancelEdit}>
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div className="pro-row" key={r.id}>
+                  <div>
+                    <strong>
+                      {r.kategori} · {formatRupiah(r.jumlah)}
+                    </strong>
+                    <small>
+                      {r.frekuensi} · berikutnya {r.tanggal_berikutnya}
+                    </small>
+                  </div>
+                  <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <button className="btn btn-ghost" onClick={() => catatRepeat(r)}>
+                      Catat sekarang
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => startEdit("repeat", r)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => hapusItem("repeat", r.id, "transaksi berulang")}
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
-                <button
-                  className="btn btn-ghost"
-                  onClick={() => catatRepeat(r)}
-                >
-                  Catat sekarang
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -405,9 +721,7 @@ export default function ProfessionalTools({
               onChange={(e) =>
                 setForm({
                   ...form,
-                  target: e.target.value
-                    .replace(/\D/g, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                  target: formatNominalInput(e.target.value),
                 })
               }
               required
@@ -425,6 +739,62 @@ export default function ProfessionalTools({
                 100,
                 (Number(g.terkumpul) / Number(g.target)) * 100,
               );
+              const editing = editSection === "goal" && editId === g.id;
+              if (editing) {
+                return (
+                  <div className="pro-row" key={g.id}>
+                    <div className="inline-form" style={{ gridColumn: "1 / -1" }}>
+                      <input
+                        placeholder="Nama target"
+                        value={editData.nama}
+                        onChange={(e) =>
+                          setEditData({ ...editData, nama: e.target.value })
+                        }
+                      />
+                      <input
+                        inputMode="numeric"
+                        placeholder="Target Rp"
+                        value={editData.target}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            target: formatNominalInput(e.target.value),
+                          })
+                        }
+                      />
+                      <input
+                        inputMode="numeric"
+                        placeholder="Terkumpul Rp"
+                        value={editData.terkumpul}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            terkumpul: formatNominalInput(e.target.value),
+                          })
+                        }
+                      />
+                      <input
+                        type="date"
+                        value={editData.tenggat}
+                        onChange={(e) =>
+                          setEditData({ ...editData, tenggat: e.target.value })
+                        }
+                      />
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        disabled={savingEdit}
+                        onClick={saveEdit}
+                      >
+                        {savingEdit ? "Menyimpan…" : "Simpan"}
+                      </button>
+                      <button className="btn btn-ghost" type="button" onClick={cancelEdit}>
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
               return (
                 <div className="pro-row" key={g.id}>
                   <div>
@@ -437,12 +807,23 @@ export default function ProfessionalTools({
                   <div className="progress">
                     <span style={{ width: `${pct}%` }} />
                   </div>
-                  <button
-                    className="btn btn-ghost"
-                    onClick={() => updateGoal(g)}
-                  >
-                    Tambah
-                  </button>
+                  <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <button className="btn btn-ghost" onClick={() => updateGoal(g)}>
+                      Tambah
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => startEdit("goal", g)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => hapusItem("goal", g.id, "target tabungan")}
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
               );
             })}
@@ -465,9 +846,7 @@ export default function ProfessionalTools({
               onChange={(e) =>
                 setForm({
                   ...form,
-                  nominal: e.target.value
-                    .replace(/\D/g, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                  nominal: formatNominalInput(e.target.value),
                 })
               }
               required
@@ -482,19 +861,80 @@ export default function ProfessionalTools({
             <button className="btn btn-primary">Tambah tagihan</button>
           </form>
           <div className="pro-list">
-            {bills.map((b) => (
-              <div className="pro-row" key={b.id}>
-                <div>
-                  <strong>{b.nama}</strong>
-                  <small>
-                    {formatRupiah(b.nominal)} · jatuh tempo {b.jatuh_tempo}
-                  </small>
+            {bills.map((b) => {
+              const editing = editSection === "bill" && editId === b.id;
+              if (editing) {
+                return (
+                  <div className="pro-row" key={b.id}>
+                    <div className="inline-form" style={{ gridColumn: "1 / -1" }}>
+                      <input
+                        placeholder="Nama tagihan"
+                        value={editData.nama}
+                        onChange={(e) =>
+                          setEditData({ ...editData, nama: e.target.value })
+                        }
+                      />
+                      <input
+                        inputMode="numeric"
+                        placeholder="Nominal Rp"
+                        value={editData.nominal}
+                        onChange={(e) =>
+                          setEditData({
+                            ...editData,
+                            nominal: formatNominalInput(e.target.value),
+                          })
+                        }
+                      />
+                      <input
+                        type="date"
+                        value={editData.jatuh_tempo}
+                        onChange={(e) =>
+                          setEditData({ ...editData, jatuh_tempo: e.target.value })
+                        }
+                      />
+                      <button
+                        className="btn btn-primary"
+                        type="button"
+                        disabled={savingEdit}
+                        onClick={saveEdit}
+                      >
+                        {savingEdit ? "Menyimpan…" : "Simpan"}
+                      </button>
+                      <button className="btn btn-ghost" type="button" onClick={cancelEdit}>
+                        Batal
+                      </button>
+                    </div>
+                  </div>
+                );
+              }
+              return (
+                <div className="pro-row" key={b.id}>
+                  <div>
+                    <strong>{b.nama}</strong>
+                    <small>
+                      {formatRupiah(b.nominal)} · jatuh tempo {b.jatuh_tempo}
+                    </small>
+                  </div>
+                  <div style={{ display: "flex", gap: ".35rem", flexWrap: "wrap", justifyContent: "flex-end" }}>
+                    <button className="btn btn-ghost" onClick={() => toggleBill(b)}>
+                      {b.status === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
+                    </button>
+                    <button
+                      className="btn btn-ghost"
+                      onClick={() => startEdit("bill", b)}
+                    >
+                      Edit
+                    </button>
+                    <button
+                      className="btn btn-danger"
+                      onClick={() => hapusItem("bill", b.id, "tagihan")}
+                    >
+                      Hapus
+                    </button>
+                  </div>
                 </div>
-                <button className="btn btn-ghost" onClick={() => toggleBill(b)}>
-                  {b.status === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
-                </button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </section>
       )}
@@ -518,7 +958,8 @@ export default function ProfessionalTools({
           </div>
           <p className="hint">
             Saldo awal digunakan dalam perhitungan saldo: saldo awal + pemasukan
-            − pengeluaran.
+            − pengeluaran. Menyimpan angka baru akan langsung menggantikan
+            (mengedit) nilai saldo awal sebelumnya.
           </p>
         </section>
       )}
