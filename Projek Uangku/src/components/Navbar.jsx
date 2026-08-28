@@ -2,6 +2,7 @@ import React from 'react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
+import ReminderBell from './ReminderBell'
 
 export default function Navbar() {
   const { profile } = useAuth()
@@ -29,6 +30,7 @@ export default function Navbar() {
           <span>Uangku</span>
         </div>
         <div className="nav-account">
+          <ReminderBell />
           {profile && (
             <span className="nav-profile" title={`${profile.nama_tampilan} · ${profile.peran}`}>
               {profile.nama_tampilan} · <strong>{profile.peran}</strong>
