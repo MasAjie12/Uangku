@@ -233,7 +233,7 @@ export default function Pengaturan() {
       <div className="card danger-zone logout-zone" style={{ padding: '1.2rem 1.4rem', marginTop: '1.8rem' }}>
         <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Logout</h3>
         <p style={{ fontSize: '0.82rem', color: '#3C554C', marginTop: 0, marginBottom: '1rem', lineHeight: 1.5 }}>
-          Kamu akan keluar dari akun <strong>{session?.user?.username}</strong> di perangkat ini. Kamu bisa masuk kembali kapan saja dengan username dan kata sandi yang sama.
+          Kamu akan keluar dari akun <strong>{session?.user?.user.id}</strong> di perangkat ini. Kamu bisa masuk kembali kapan saja dengan username dan kata sandi yang sama.
         </p>
         <button className="btn btn-danger" onClick={logout} disabled={loggingOut} style={{ width: '100%' }}>
           {loggingOut ? 'Sedang keluar…' : 'Keluar dari Akun'}
