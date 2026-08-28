@@ -28,7 +28,7 @@ export default function Login() {
   return (
     <div style={wrapStyle}>
       <div className="card" style={cardStyle}>
-        <h1 style={{ fontSize: '1.6rem', marginBottom: '0.2rem' }}>Uangku</h1>
+        <h1 style={{ fontSize: '1.6rem', marginBottom: '0.2rem' }}>UangKu</h1>
         <p style={{ color: '#3C554C', marginTop: 0, marginBottom: '1.4rem', fontSize: '0.92rem' }}>
           Catatan kas keluarga, bisa dibuka dari mana saja.
         </p>
