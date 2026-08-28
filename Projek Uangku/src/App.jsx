@@ -7,6 +7,7 @@ import Dashboard from './pages/Dashboard'
 import Laporan from './pages/Laporan'
 import Pengaturan from './pages/Pengaturan'
 import Navbar from './components/Navbar'
+import Footer from './components/Footer'
 
 export const AuthContext = createContext(null)
 export const useAuth = () => useContext(AuthContext)
@@ -52,15 +53,20 @@ function App() {
 
   return (
     <AuthContext.Provider value={{ session, profile, setProfile }}>
-      {session && <Navbar />}
-      <Routes>
-        <Route path="/login" element={session ? <Navigate to="/" /> : <Login />} />
-        <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
-        <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
-        <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
-        <Route path="/pengaturan" element={session ? <Pengaturan /> : <Navigate to="/login" />} />
-        <Route path="*" element={<Navigate to="/" />} />
-      </Routes>
+      <div className="app-shell">
+        {session && <Navbar />}
+        <main className="app-main">
+          <Routes>
+            <Route path="/login" element={session ? <Navigate to="/" /> : <Login />} />
+            <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
+            <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
+            <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
+            <Route path="/pengaturan" element={session ? <Pengaturan /> : <Navigate to="/login" />} />
+            <Route path="*" element={<Navigate to="/" />} />
+          </Routes>
+        </main>
+        <Footer />
+      </div>
     </AuthContext.Provider>
   )
 }
