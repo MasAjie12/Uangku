@@ -119,6 +119,41 @@ input, select, textarea {
   * { transition: none !important; animation: none !important; }
 }
 
+/* Shell layout supaya footer selalu berada di paling bawah halaman */
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+.app-main {
+  flex: 1 0 auto;
+}
+
+.app-footer {
+  flex: 0 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  padding: 1.1rem 1rem;
+  border-top: 1px solid var(--line);
+  background: #fff;
+  color: var(--ink-soft);
+  font-size: 0.78rem;
+}
+.footer-copyright-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1.4px solid var(--ink-soft);
+  font-size: 0.68rem;
+  font-weight: 700;
+  line-height: 1;
+}
+
 .report-table tbody tr:hover { background: #FFFDF7; }
 .report-table td, .report-table th { font-variant-numeric: tabular-nums; }
 .danger-zone { background: #FFFBFA; }
