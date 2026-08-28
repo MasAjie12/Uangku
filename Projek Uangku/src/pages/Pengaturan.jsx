@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
 import KategoriManager from '../components/KategoriManager'
+import { disablePushNotifications, enablePushNotifications, getPushState, isPushSupported } from '../pushNotifications'
 
 export default function Pengaturan() {
   const { session, profile, setProfile } = useAuth()
@@ -14,10 +15,14 @@ export default function Pengaturan() {
   const [editNamaKeluarga, setEditNamaKeluarga] = useState(false)
   const [namaKeluargaDraft, setNamaKeluargaDraft] = useState('')
   const [savingKeluarga, setSavingKeluarga] = useState(false)
+  const [pushState, setPushState] = useState({ supported: false, permission: 'default', subscribed: false })
+  const [pushBusy, setPushBusy] = useState(false)
+  const [pushMessage, setPushMessage] = useState('')
 
   useEffect(() => {
     muatAnggota()
     muatKeluarga()
+    getPushState().then(setPushState).catch(() => setPushState({ supported: false, permission: 'unsupported', subscribed: false }))
   }, [])
 
   async function muatKeluarga() {
@@ -67,6 +72,32 @@ export default function Pengaturan() {
     }
     setPesan('Perubahan disimpan.')
     muatAnggota()
+  }
+
+
+  async function aktifkanNotifikasi() {
+    if (!profile) return
+    setPushBusy(true)
+    setPushMessage('')
+    try {
+      await enablePushNotifications(profile)
+      setPushState(await getPushState())
+      setPushMessage('Notifikasi aktif. Uangku dapat mengirim pengingat tagihan dan target tabungan.')
+    } catch (error) {
+      setPushMessage(error?.message || 'Gagal mengaktifkan notifikasi.')
+    } finally { setPushBusy(false) }
+  }
+
+  async function matikanNotifikasi() {
+    setPushBusy(true)
+    setPushMessage('')
+    try {
+      await disablePushNotifications()
+      setPushState(await getPushState())
+      setPushMessage('Notifikasi push dinonaktifkan pada perangkat ini.')
+    } catch (error) {
+      setPushMessage(error?.message || 'Gagal menonaktifkan notifikasi.')
+    } finally { setPushBusy(false) }
   }
 
   function salinKode() {
@@ -125,6 +156,28 @@ export default function Pengaturan() {
       )}
 
       {pesan && <p style={{ color: pesan.startsWith('Gagal') ? '#B1483A' : '#2F7A54', marginBottom: '1rem' }}>{pesan}</p>}
+
+      <div className="card push-settings-card">
+        <div>
+          <h3 style={{ margin: 0, fontSize: '1.05rem' }}>🔔 Notifikasi Pengingat</h3>
+          <p style={{ margin: '.35rem 0 0', color: '#8A7F68', fontSize: '.8rem', lineHeight: 1.5 }}>
+            Aktifkan notifikasi browser agar pengingat tagihan dan target tabungan dapat muncul sebagai notifikasi HP. Untuk menerima notifikasi saat browser tertutup, perangkat/browser harus mengizinkan Push dan aplikasi perlu menggunakan HTTPS.
+          </p>
+        </div>
+        <div className="push-settings-actions">
+          {!pushState.supported ? (
+            <span className="push-status">Browser ini belum mendukung Web Push.</span>
+          ) : pushState.subscribed ? (
+            <>
+              <span className="push-status push-on">● Notifikasi aktif</span>
+              <button className="btn btn-ghost" onClick={matikanNotifikasi} disabled={pushBusy}>{pushBusy ? 'Memproses…' : 'Matikan notifikasi'}</button>
+            </>
+          ) : (
+            <button className="btn btn-primary" onClick={aktifkanNotifikasi} disabled={pushBusy}>{pushBusy ? 'Mengaktifkan…' : 'Aktifkan Notifikasi'}</button>
+          )}
+        </div>
+        {pushMessage && <div className="push-message">{pushMessage}</div>}
+      </div>
 
       <KategoriManager />
 
