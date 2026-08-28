@@ -16,9 +16,16 @@ function exportPdf(rows,a,b,mi,mk){const win=window.open('','_blank','width=1200
 export default function Laporan(){
  const [semua,setSemua]=useState([]),[tanggalAwal,setTanggalAwal]=useState(awalBulanIni()),[tanggalAkhir,setTanggalAkhir]=useState(hariIni()),[search,setSearch]=useState(''),[tipeFilter,setTipeFilter]=useState('semua'),[kategoriFilter,setKategoriFilter]=useState('semua'),[kategoriPemasukan,setKategoriPemasukan]=useState('semua'),[visible,setVisible]=useState(5)
  async function muatData(){const {data}=await supabase.from('transaksi').select('*, profiles(nama_tampilan, peran)').order('tanggal',{ascending:false}).order('created_at',{ascending:false});setSemua(data||[])}
- useEffect(()=>{muatData();const c=supabase.channel('laporan-realtime').on('postgres_changes',{event:'*',schema:'public',table:'transaksi'},muatData).subscribe();return()=>supabase.removeChannel(c)},[])
+ useEffect(()=>{muatData();const c=supabase.channel('laporan-realtime').on('postgres_changes',{event:'*',schema:'public',table:'transaksi'},muatData).on('postgres_changes',{event:'*',schema:'public',table:'kategori'},muatData).subscribe();return()=>supabase.removeChannel(c)},[])
  const dataRange=useMemo(()=>semua.filter(t=>t.tanggal>=tanggalAwal&&t.tanggal<=tanggalAkhir),[semua,tanggalAwal,tanggalAkhir])
  const kategoriOptions=useMemo(()=>[...new Set(dataRange.map(t=>t.kategori))].sort(),[dataRange])
+ // Kalau kategori yang sedang dipilih di filter sudah tidak ada lagi (mis. baru saja
+ // diganti namanya atau dihapus di halaman Pengaturan), otomatis kembali ke "semua"
+ // supaya chart & tabel tidak terlihat kosong karena masih merujuk nama lama.
+ useEffect(()=>{
+   if(kategoriFilter!=='semua'&&!kategoriOptions.includes(kategoriFilter))setKategoriFilter('semua')
+   if(kategoriPemasukan!=='semua'&&!kategoriOptions.includes(kategoriPemasukan))setKategoriPemasukan('semua')
+ },[kategoriOptions])
  const dataTersaring=useMemo(()=>{const q=search.trim().toLowerCase();return dataRange.filter(t=>{const text=[t.kategori,t.sumber_tujuan,t.keterangan,t.profiles?.nama_tampilan,t.profiles?.peran,t.tanggal].filter(Boolean).join(' ').toLowerCase();return (tipeFilter==='semua'||t.tipe===tipeFilter)&&(kategoriFilter==='semua'||t.kategori===kategoriFilter)&&(!q||text.includes(q))})},[dataRange,search,tipeFilter,kategoriFilter])
  useEffect(()=>setVisible(5),[search,tipeFilter,kategoriFilter,tanggalAwal,tanggalAkhir])
  const totalMasuk=dataRange.filter(t=>t.tipe==='pemasukan').reduce((s,t)=>s+Number(t.jumlah),0), totalKeluar=dataRange.filter(t=>t.tipe==='pengeluaran').reduce((s,t)=>s+Number(t.jumlah),0)
