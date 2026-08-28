@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
 import KategoriManager from '../components/KategoriManager'
@@ -6,6 +7,15 @@ import { disablePushNotifications, enablePushNotifications, getPushState, isPush
 
 export default function Pengaturan() {
   const { session, profile, setProfile } = useAuth()
+  const navigate = useNavigate()
+  const [loggingOut, setLoggingOut] = useState(false)
+
+  async function logout() {
+    if (!confirm('Yakin ingin keluar dari akun ini?')) return
+    setLoggingOut(true)
+    await supabase.auth.signOut()
+    navigate('/login')
+  }
   const [keluarga, setKeluarga] = useState(null)
   const [anggota, setAnggota] = useState([])
   const [draft, setDraft] = useState({})
@@ -218,6 +228,16 @@ export default function Pengaturan() {
             </div>
           )
         })}
+      </div>
+
+      <div className="card danger-zone logout-zone" style={{ padding: '1.2rem 1.4rem', marginTop: '1.8rem' }}>
+        <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Keluar Akun</h3>
+        <p style={{ fontSize: '0.82rem', color: '#3C554C', marginTop: 0, marginBottom: '1rem', lineHeight: 1.5 }}>
+          Kamu akan keluar dari akun <strong>{session?.user?.email}</strong> di perangkat ini. Kamu bisa masuk kembali kapan saja dengan username dan kata sandi yang sama.
+        </p>
+        <button className="btn btn-danger" onClick={logout} disabled={loggingOut} style={{ width: '100%' }}>
+          {loggingOut ? 'Sedang keluar…' : 'Keluar dari Akun'}
+        </button>
       </div>
     </div>
   )
