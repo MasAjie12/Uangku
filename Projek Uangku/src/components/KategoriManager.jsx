@@ -59,10 +59,19 @@ export default function KategoriManager() {
     }
     setSavingEdit(true)
     setError('')
-    const { error } = await supabase.from('kategori').update({ nama: namaBaru }).eq('id', id)
+    const { data, error } = await supabase
+      .from('kategori')
+      .update({ nama: namaBaru })
+      .eq('id', id)
+      .select()
     setSavingEdit(false)
     if (error) {
       setError(error.code === '23505' ? 'Nama kategori itu sudah dipakai.' : 'Gagal menyimpan: ' + error.message)
+      return
+    }
+    if (!data || data.length === 0) {
+      // RLS menolak perubahan tanpa mengembalikan error eksplisit.
+      setError('Perubahan tidak tersimpan (tidak ada izin mengubah kategori ini). Pastikan skema database Supabase sudah yang terbaru.')
       return
     }
     setEditingId(null)
