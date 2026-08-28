@@ -115,8 +115,51 @@ input, select, textarea {
 
 ::placeholder { color: #A79B84; }
 
+html { scroll-behavior: smooth; }
+
+/* ===== Animasi ringan (dipakai di seluruh aplikasi) ===== */
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes popIn {
+  from { opacity: 0; transform: scale(.94) translateY(-4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+@keyframes pageFadeSlide {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animasi berpindah halaman: setiap kali route berganti, App.jsx memasang ulang
+   pembungkus ini (key={pathname}) sehingga animasi fade + geser halus terputar. */
+.page-enter {
+  animation: pageFadeSlide .32s cubic-bezier(.2,.85,.3,1) both;
+}
+
+/* Kartu ringkasan & elemen utama muncul dengan fade halus saat pertama tampil */
+.app-main .card {
+  animation: fadeInUp .3s ease both;
+}
+
+/* Pop-up / modal umum (mis. form edit transaksi) */
+.modal-backdrop { animation: fadeIn .18s ease both; }
+.card.modal { animation: popIn .2s cubic-bezier(.2,.9,.25,1) both; }
+
+/* Tombol: sedikit terangkat saat hover, tetap ringan */
+.btn-primary:hover, .btn-ghost:hover { transform: translateY(-1px); }
+.btn-danger:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+
 @media (prefers-reduced-motion: reduce) {
-  * { transition: none !important; animation: none !important; }
+  * { transition: none !important; animation: none !important; scroll-behavior: auto !important; }
 }
 
 /* Shell layout supaya footer selalu berada di paling bawah halaman */
@@ -227,7 +270,7 @@ body { overflow-x: hidden; }
   .field input, .field select, .field textarea { max-width: 100%; }
 }
 
-/* Navbar — desktop: brand left, navigation center, account right */
+/* Navbar — desktop: brand+profile left, navigation center, bell pinned top-right */
 .app-navbar {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
@@ -244,13 +287,20 @@ body { overflow-x: hidden; }
 .nav-top-row {
   display: contents;
 }
-.nav-brand { min-width: 0; justify-self: start; }
-.nav-brand span {
+.nav-brand {
+  min-width: 0;
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  gap: .1rem;
+}
+.nav-brand .brand-name {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--ink);
   white-space: nowrap;
+  line-height: 1.1;
 }
 .app-navbar .main-nav {
   grid-column: 2;
@@ -261,16 +311,22 @@ body { overflow-x: hidden; }
   justify-content: center;
   gap: .4rem;
 }
-.app-navbar .main-nav a { flex: 0 0 auto; white-space: nowrap; }
+.app-navbar .main-nav a {
+  flex: 0 0 auto;
+  white-space: nowrap;
+  transition: background .18s ease, color .18s ease;
+}
+/* Bell selalu di kolom paling kanan grid navbar, tidak pernah bergeser ke tengah */
 .app-navbar .nav-account {
   grid-column: 3;
   grid-row: 1;
   min-width: 0;
   justify-self: end;
+  align-self: flex-start;
   display: flex;
   align-items: center;
   justify-content: flex-end;
-  gap: .7rem;
+  flex: 0 0 auto;
 }
 .nav-profile {
   min-width: 0;
@@ -278,11 +334,10 @@ body { overflow-x: hidden; }
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
-  font-size: .85rem;
+  font-size: .76rem;
   color: var(--ink-soft);
 }
 .nav-profile strong { color: var(--gold); }
-.nav-logout { flex: 0 0 auto; white-space: nowrap; }
 
 @media (max-width: 780px) {
   .app-navbar {
@@ -291,36 +346,32 @@ body { overflow-x: hidden; }
     align-items: stretch;
     gap: .45rem;
     padding: .6rem .7rem .5rem;
+    position: relative;
   }
   .nav-top-row {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: .5rem;
     width: 100%;
     min-width: 0;
   }
-  .nav-brand { flex: 0 0 auto; min-width: 0; }
-  .nav-brand span { font-size: 1.1rem; }
-  .app-navbar .nav-account {
-    position: static;
+  /* Brand + profile di kiri, tidak lagi berbagi baris dengan tombol keluar (sudah dipindah ke Pengaturan) */
+  .nav-brand {
     flex: 1 1 auto;
     min-width: 0;
-    max-width: none;
-    justify-self: auto;
-    gap: .35rem;
   }
+  .nav-brand .brand-name { font-size: 1.1rem; }
   .nav-profile {
-    flex: 1 1 auto;
-    min-width: 0;
     max-width: none;
-    text-align: right;
+    text-align: left;
     font-size: .7rem;
     line-height: 1.2;
   }
-  .nav-logout {
-    padding: .45rem .58rem;
-    font-size: .72rem;
+  /* Lonceng dikunci tegas di pojok kanan atas, terpisah dari elemen lain supaya tidak "kelihatan di tengah" */
+  .app-navbar .nav-account {
+    flex: 0 0 auto;
+    align-self: flex-start;
   }
   .app-navbar .main-nav {
     grid-column: auto;
@@ -340,8 +391,8 @@ body { overflow-x: hidden; }
 
 @media (max-width: 380px) {
   .app-navbar { padding-left: .6rem; padding-right: .6rem; }
-  .nav-profile { max-width: 105px; font-size: .66rem; }
-  .nav-logout { padding: .42rem .52rem; font-size: .69rem; }
+  .nav-brand .brand-name { font-size: 1.02rem; }
+  .nav-profile { font-size: .66rem; }
 }
 
 /* Professional transaction history */
@@ -397,18 +448,44 @@ img,svg,canvas { max-width:100%; }
 
 /* Pengingat & Web Push */
 .reminder-wrap { position: relative; flex: 0 0 auto; }
-.reminder-bell { position: relative; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); display: inline-flex; align-items:center; justify-content:center; font-size: 1rem; padding: 0; }
-.reminder-bell:hover { box-shadow: var(--shadow); }
+.reminder-bell { position: relative; width: 38px; height: 38px; border-radius: 10px; border: 1px solid var(--line); background: #fff; color: var(--ink); display: inline-flex; align-items:center; justify-content:center; font-size: 1rem; padding: 0; transition: transform .15s ease, box-shadow .15s ease; }
+.reminder-bell:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
 .reminder-bell b { position:absolute; top:-5px; right:-5px; min-width:18px; height:18px; padding:0 4px; border-radius:999px; background:var(--expense); color:#fff; font-size:.62rem; display:grid; place-items:center; border:2px solid #fff; }
-.reminder-popover { position:absolute; right:0; top:calc(100% + .55rem); width:min(360px, calc(100vw - 1.2rem)); max-height:70vh; overflow:auto; background:#fff; border:1px solid var(--line); border-radius:14px; box-shadow:0 16px 40px rgba(22,51,43,.16); z-index:100; padding:.55rem; }
-.reminder-popover-head { display:flex; justify-content:space-between; gap:.8rem; padding:.65rem .7rem; border-bottom:1px solid #EFE9D9; font-size:.8rem; }
-.reminder-popover-head span { color:#8A7F68; }
+/* Lonceng berdenyut halus saat ada pengingat aktif, supaya menarik perhatian tanpa mengganggu */
+.reminder-bell.has-reminders { animation: bellPulse 2.4s ease-in-out infinite; }
+@keyframes bellPulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(177,72,58,.28); }
+  50% { box-shadow: 0 0 0 6px rgba(177,72,58,0); }
+}
+
+/* Backdrop transparan supaya tap di luar panel menutup pengingat, dan mengunci fokus perhatian */
+.reminder-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(22,51,43,.08);
+  z-index: 90;
+  animation: fadeIn .18s ease both;
+}
+
+.reminder-popover {
+  position:absolute; right:0; top:calc(100% + .55rem);
+  width:min(360px, calc(100vw - 1.2rem)); max-height:70vh; overflow:auto;
+  background:#fff; border:1px solid var(--line); border-radius:14px;
+  box-shadow:0 16px 40px rgba(22,51,43,.16); z-index:100; padding:.55rem;
+  transform-origin: top right;
+  animation: popIn .18s cubic-bezier(.2,.9,.25,1) both;
+}
+.reminder-popover-head { position: sticky; top: 0; display:flex; align-items:center; justify-content:space-between; gap:.6rem; padding:.65rem .7rem; border-bottom:1px solid #EFE9D9; font-size:.8rem; background:#fff; z-index:1; }
+.reminder-popover-head span { color:#8A7F68; flex: 1 1 auto; }
+.reminder-close { flex: 0 0 auto; border: 0; background: #F6F1E4; color: var(--ink-soft); width: 26px; height: 26px; border-radius: 50%; font-size: .72rem; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+.reminder-close:hover { background: var(--line); }
+.reminder-popover-body { overflow-y: auto; }
 .reminder-item { width:100%; border:0; background:#fff; text-align:left; display:flex; gap:.65rem; padding:.7rem; border-radius:10px; cursor:pointer; }
 .reminder-item:hover { background:#FFFDF7; }
 .reminder-icon { font-size:1rem; flex:0 0 auto; }
 .reminder-item strong,.reminder-item small { display:block; }
-.reminder-item strong { font-size:.78rem; color:var(--ink); }
-.reminder-item small { margin-top:.18rem; font-size:.7rem; line-height:1.4; color:#8A7F68; }
+.reminder-item strong { font-size:.78rem; color:var(--ink); white-space: normal; }
+.reminder-item small { margin-top:.18rem; font-size:.7rem; line-height:1.4; color:#8A7F68; white-space: normal; }
 .reminder-empty { margin:0; padding:1rem .7rem; font-size:.75rem; color:#8A7F68; line-height:1.5; }
 .goal-alert,.bill-alert { margin-top:.8rem; padding:.7rem .85rem; border-radius:9px; font-size:.78rem; line-height:1.45; }
 .goal-alert { background:#EEF6EF; border:1px solid #CFE3D3; color:#2F7A54; }
@@ -417,10 +494,32 @@ img,svg,canvas { max-width:100%; }
 .push-settings-actions { display:flex; align-items:center; gap:.65rem; flex-wrap:wrap; }
 .push-status { color:#8A7F68; font-size:.75rem; }
 .push-status.push-on { color:#2F7A54; font-weight:700; }
-.push-message { flex-basis:100%; padding:.55rem .7rem; border-radius:9px; background:#FFFDF7; border:1px solid #EFE9D9; color:var(--ink-soft); font-size:.75rem; line-height:1.4; }
+.push-message { flex-basis:100%; padding:.55rem .7rem; border-radius:9px; background:#FFFDF7; border:1px solid #EFE9D9; color:var(--ink-soft); font-size:.75rem; line-height:1.4; animation: fadeIn .2s ease both; }
+
+/* Mobile: panel pengingat dikunci sebagai kartu mengambang penuh, bukan dropdown kecil,
+   supaya SELURUH isi pengingat pasti terbaca tanpa terpotong layar. */
 @media(max-width:780px){
-  .reminder-popover { right:-.35rem; }
+  .reminder-popover {
+    position: fixed;
+    /* Diukur agar selalu jatuh di BAWAH seluruh navbar (brand+bell, lalu baris menu Catat/Laporan/Pengaturan),
+       jadi panel tidak pernah menabrak menu maupun terpotong di atas layar. */
+    top: calc(env(safe-area-inset-top, 0px) + 116px);
+    left: .6rem;
+    right: .6rem;
+    width: auto;
+    max-height: calc(100vh - 132px);
+    transform-origin: top center;
+  }
   .push-settings-card { align-items:stretch; }
   .push-settings-actions { width:100%; }
   .push-settings-actions .btn { width:100%; }
 }
+
+@media(max-width:380px){
+  .reminder-popover {
+    top: calc(env(safe-area-inset-top, 0px) + 108px);
+    max-height: calc(100vh - 124px);
+  }
+}
+
+.logout-zone p strong { color: var(--ink); }
