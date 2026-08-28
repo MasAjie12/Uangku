@@ -20,7 +20,7 @@ export default function Navbar() {
     <header className="app-navbar">
       <div className="nav-top-row">
         <div className="nav-brand">
-          <span className="brand-name">Uangku</span>
+          <span className="brand-name">UANGKU</span>
           {profile && (
             <span className="nav-profile" title={`${profile.nama_tampilan} · ${profile.peran}`}>
               {profile.nama_tampilan} · <strong>{profile.peran}</strong>
