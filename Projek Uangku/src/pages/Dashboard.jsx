@@ -16,7 +16,18 @@ export default function Dashboard() {
   );
   const [deleting, setDeleting] = useState(false);
   const [saldoAwal, setSaldoAwal] = useState(0);
+  const [semuaRingkasan, setSemuaRingkasan] = useState([]);
+  const [tanggalAwal, setTanggalAwal] = useState(() => toISODateLocal(new Date()));
+  const [tanggalAkhir, setTanggalAkhir] = useState(() => toISODateLocal(new Date()));
   const { session, profile } = useAuth();
+
+  const muatRingkasan = useCallback(async () => {
+    const { data } = await supabase
+      .from("transaksi")
+      .select("tanggal, tipe, jumlah")
+      .order("tanggal", { ascending: true });
+    setSemuaRingkasan(data || []);
+  }, []);
 
   const muatData = useCallback(async () => {
     const { data } = await supabase
@@ -40,16 +51,65 @@ export default function Dashboard() {
 
   useEffect(() => {
     muatData();
+    muatRingkasan();
     const channel = supabase
       .channel("transaksi-realtime")
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "transaksi" },
-        () => muatData(),
+        () => {
+          muatData();
+          muatRingkasan();
+        },
       )
       .subscribe();
     return () => supabase.removeChannel(channel);
-  }, [muatData]);
+  }, [muatData, muatRingkasan]);
+
+  function terapkanPresetRingkasan(preset) {
+    const now = new Date();
+    if (preset === "hari") {
+      setTanggalAwal(toISODateLocal(now));
+      setTanggalAkhir(toISODateLocal(now));
+    }
+    if (preset === "7hari") {
+      const awal = new Date(now);
+      awal.setDate(now.getDate() - 6);
+      setTanggalAwal(toISODateLocal(awal));
+      setTanggalAkhir(toISODateLocal(now));
+    }
+    if (preset === "bulan") {
+      setTanggalAwal(toISODateLocal(new Date(now.getFullYear(), now.getMonth(), 1)));
+      setTanggalAkhir(toISODateLocal(now));
+    }
+    if (preset === "semua") {
+      setTanggalAwal(semuaRingkasan.length ? semuaRingkasan[0].tanggal : toISODateLocal(now));
+      setTanggalAkhir(toISODateLocal(now));
+    }
+  }
+
+  const periodeRingkasan = useMemo(
+    () => semuaRingkasan.filter((t) => t.tanggal >= tanggalAwal && t.tanggal <= tanggalAkhir),
+    [semuaRingkasan, tanggalAwal, tanggalAkhir],
+  );
+  const totalMasukPeriode = periodeRingkasan
+    .filter((t) => t.tipe === "pemasukan")
+    .reduce((s, t) => s + Number(t.jumlah), 0);
+  const totalKeluarPeriode = periodeRingkasan
+    .filter((t) => t.tipe === "pengeluaran")
+    .reduce((s, t) => s + Number(t.jumlah), 0);
+
+  // Saldo dihitung sebagai saldo kas per akhir tanggal yang dipilih (saldo awal
+  // ditambah seluruh riwayat sampai tanggal itu), bukan cuma selisih di periode
+  // ini saja — supaya angkanya tetap masuk akal seperti cek saldo di buku kas.
+  const kumulatifSampaiAkhir = useMemo(
+    () => semuaRingkasan.filter((t) => t.tanggal <= tanggalAkhir),
+    [semuaRingkasan, tanggalAkhir],
+  );
+  const saldoPerTanggal =
+    saldoAwal +
+    kumulatifSampaiAkhir.filter((t) => t.tipe === "pemasukan").reduce((s, t) => s + Number(t.jumlah), 0) -
+    kumulatifSampaiAkhir.filter((t) => t.tipe === "pengeluaran").reduce((s, t) => s + Number(t.jumlah), 0);
 
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -69,13 +129,6 @@ export default function Dashboard() {
         .includes(q),
     );
   }, [items, search]);
-
-  const totalMasuk = items
-    .filter((i) => i.tipe === "pemasukan")
-    .reduce((s, i) => s + Number(i.jumlah), 0);
-  const totalKeluar = items
-    .filter((i) => i.tipe === "pengeluaran")
-    .reduce((s, i) => s + Number(i.jumlah), 0);
 
   async function hapusPeriode() {
     if (!hapusTanggal) return alert("Pilih tanggal acuan terlebih dahulu.");
@@ -127,11 +180,40 @@ export default function Dashboard() {
         </p>
       </div>
 
+      <div className="card" style={{ padding: "1rem 1.2rem", marginBottom: "0.9rem" }}>
+        <div style={{ display: "flex", gap: "0.5rem", flexWrap: "wrap", marginBottom: "0.9rem" }}>
+          {[
+            ["hari", "Hari Ini"],
+            ["7hari", "7 Hari Terakhir"],
+            ["bulan", "Bulan Ini"],
+            ["semua", "Semua"],
+          ].map(([k, l]) => (
+            <button key={k} type="button" className="btn btn-ghost" onClick={() => terapkanPresetRingkasan(k)} style={{ fontSize: "0.8rem", padding: "0.4rem 0.8rem" }}>
+              {l}
+            </button>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: "0.9rem", flexWrap: "wrap", alignItems: "flex-end" }}>
+          <div className="field" style={{ margin: 0 }}>
+            <label>Dari tanggal</label>
+            <input type="date" value={tanggalAwal} max={tanggalAkhir} onChange={(e) => setTanggalAwal(e.target.value)} />
+          </div>
+          <div className="field" style={{ margin: 0 }}>
+            <label>Sampai tanggal</label>
+            <input type="date" value={tanggalAkhir} min={tanggalAwal} max={toISODateLocal(new Date())} onChange={(e) => setTanggalAkhir(e.target.value)} />
+          </div>
+        </div>
+        <p style={{ fontSize: "0.76rem", color: "#8A7F68", marginTop: "0.8rem", marginBottom: 0 }}>
+          Total Pemasukan & Pengeluaran menampilkan jumlah pada rentang ini. Saldo menunjukkan saldo kas per akhir tanggal yang dipilih (termasuk saldo awal & seluruh riwayat sebelumnya).
+        </p>
+      </div>
+
       <div className="professional-dashboard-section" style={{ marginBottom: "1.4rem" }}>
         <SummaryCards
-          totalMasuk={totalMasuk}
-          totalKeluar={totalKeluar}
+          totalMasuk={totalMasukPeriode}
+          totalKeluar={totalKeluarPeriode}
           saldoAwal={saldoAwal}
+          saldo={saldoPerTanggal}
         />
       </div>
 
