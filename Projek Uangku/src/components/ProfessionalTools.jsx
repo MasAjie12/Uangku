@@ -1,53 +1,527 @@
-import React, { useEffect, useMemo, useState } from 'react'
-import { supabase } from '../supabaseClient'
-import { useAuth } from '../App'
-import { formatRupiah, toISODateLocal } from '../utils'
+import React, { useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabaseClient";
+import { useAuth } from "../App";
+import { formatRupiah, toISODateLocal } from "../utils";
 
-export default function ProfessionalTools({ transactions = [], saldoAwal, onSaldoAwalSaved }) {
-  const { profile } = useAuth()
-  const [tab, setTab] = useState('budget')
-  const [budget, setBudget] = useState([]), [goals, setGoals] = useState([]), [bills, setBills] = useState([]), [repeat, setRepeat] = useState([])
-  const [categories, setCategories] = useState([])
-  const [saving, setSaving] = useState(false)
-  const [saldo, setSaldo] = useState(String(saldoAwal || 0).replace(/\B(?=(\d{3})+(?!\d))/g,'.'))
-  const [form, setForm] = useState({ kategori:'', batas:'', nama:'', target:'', tenggat:'', nominal:'', jatuh_tempo:toISODateLocal(new Date()), frekuensi:'bulanan', tipe:'pengeluaran', sumber_tujuan:'', keterangan:'' })
-  const month = `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}-01`
+export default function ProfessionalTools({
+  transactions = [],
+  saldoAwal,
+  onSaldoAwalSaved,
+}) {
+  const { profile } = useAuth();
+  const [tab, setTab] = useState("budget");
+  const [budget, setBudget] = useState([]),
+    [goals, setGoals] = useState([]),
+    [bills, setBills] = useState([]),
+    [repeat, setRepeat] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [saving, setSaving] = useState(false);
+  const [saldo, setSaldo] = useState(
+    String(saldoAwal || 0).replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+  );
+  const [form, setForm] = useState({
+    kategori: "",
+    batas: "",
+    nama: "",
+    target: "",
+    tenggat: "",
+    nominal: "",
+    jatuh_tempo: toISODateLocal(new Date()),
+    frekuensi: "bulanan",
+    tipe: "pengeluaran",
+    sumber_tujuan: "",
+    keterangan: "",
+  });
+  const month = `${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}-01`;
 
-  async function load(){
-    const [b,g,bi,r,c] = await Promise.all([
-      supabase.from('anggaran').select('*').order('bulan',{ascending:false}), supabase.from('target_tabungan').select('*').order('created_at',{ascending:false}),
-      supabase.from('tagihan').select('*').order('jatuh_tempo'), supabase.from('transaksi_berulang').select('*').order('tanggal_berikutnya'), supabase.from('kategori').select('nama').eq('tipe','pengeluaran').order('nama')
-    ])
-    setBudget(b.data||[]);setGoals(g.data||[]);setBills(bi.data||[]);setRepeat(r.data||[]);setCategories(c.data||[])
+  async function load() {
+    const [b, g, bi, r, c] = await Promise.all([
+      supabase
+        .from("anggaran")
+        .select("*")
+        .order("bulan", { ascending: false }),
+      supabase
+        .from("target_tabungan")
+        .select("*")
+        .order("created_at", { ascending: false }),
+      supabase.from("tagihan").select("*").order("jatuh_tempo"),
+      supabase
+        .from("transaksi_berulang")
+        .select("*")
+        .order("tanggal_berikutnya"),
+      supabase
+        .from("kategori")
+        .select("nama")
+        .eq("tipe", "pengeluaran")
+        .order("nama"),
+    ]);
+    setBudget(b.data || []);
+    setGoals(g.data || []);
+    setBills(bi.data || []);
+    setRepeat(r.data || []);
+    setCategories(c.data || []);
   }
-  useEffect(()=>{load()},[])
-  useEffect(()=>setSaldo(String(saldoAwal||0).replace(/\B(?=(\d{3})+(?!\d))/g,'.')),[saldoAwal])
+  useEffect(() => {
+    load();
+  }, []);
+  useEffect(
+    () =>
+      setSaldo(String(saldoAwal || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")),
+    [saldoAwal],
+  );
 
-  const spentByCategory = useMemo(()=>transactions.filter(t=>t.tipe==='pengeluaran').reduce((a,t)=>{a[t.kategori]=(a[t.kategori]||0)+Number(t.jumlah);return a},{}),[transactions])
-  async function saveSaldo(){ const n=Number(saldo.replace(/\D/g,''))||0; const {error}=await supabase.from('keluarga').update({saldo_awal:n}).eq('id',profile.keluarga_id);if(error)return alert(error.message);onSaldoAwalSaved&&onSaldoAwalSaved(n) }
-  async function addBudget(e){e.preventDefault();setSaving(true);const n=Number(form.batas.replace(/\D/g,''));const {error}=await supabase.from('anggaran').upsert({keluarga_id:profile.keluarga_id,kategori:form.kategori,bulan:month,batas:n,created_by:profile.id},{onConflict:'keluarga_id,kategori,bulan'});setSaving(false);if(error)return alert(error.message);setForm({...form,kategori:'',batas:''});load()}
-  async function addGoal(e){e.preventDefault();const {error}=await supabase.from('target_tabungan').insert({keluarga_id:profile.keluarga_id,nama:form.nama,target:Number(form.target.replace(/\D/g,'')),tenggat:form.tenggat||null});if(error)return alert(error.message);setForm({...form,nama:'',target:'',tenggat:''});load()}
-  async function addBill(e){e.preventDefault();const {error}=await supabase.from('tagihan').insert({keluarga_id:profile.keluarga_id,nama:form.nama,nominal:Number(form.nominal.replace(/\D/g,'')),jatuh_tempo:form.jatuh_tempo,berulang:form.frekuensi!=='sekali'});if(error)return alert(error.message);setForm({...form,nama:'',nominal:''});load()}
-  async function addRepeat(e){e.preventDefault();const {error}=await supabase.from('transaksi_berulang').insert({keluarga_id:profile.keluarga_id,user_id:profile.id,tipe:form.tipe,kategori:form.kategori,jumlah:Number(form.nominal.replace(/\D/g,'')),sumber_tujuan:form.sumber_tujuan||null,keterangan:form.keterangan||null,frekuensi:form.frekuensi,tanggal_berikutnya:form.jatuh_tempo});if(error)return alert(error.message);setForm({...form,kategori:'',nominal:'',sumber_tujuan:'',keterangan:''});load()}
-  async function catatRepeat(r){const {error}=await supabase.from('transaksi').insert({user_id:profile.id,tipe:r.tipe,kategori:r.kategori,jumlah:r.jumlah,sumber_tujuan:r.sumber_tujuan,keterangan:`Transaksi berulang: ${r.keterangan||''}`.trim(),tanggal:toISODateLocal(new Date())});if(error)return alert(error.message);alert('Transaksi berulang berhasil dicatat hari ini.')}
-  async function updateGoal(g){const v=prompt(`Tambah tabungan untuk ${g.nama}:`, '0');if(v===null)return;const add=Number(v.replace(/\D/g,''))||0;if(!add)return;const {error}=await supabase.from('target_tabungan').update({terkumpul:Number(g.terkumpul)+add}).eq('id',g.id);if(error)return alert(error.message);load()}
-  async function toggleBill(b){const {error}=await supabase.from('tagihan').update({status:b.status==='lunas'?'belum':'lunas'}).eq('id',b.id);if(error)return alert(error.message);load()}
-  const tabs=[
-    ['budget','Anggaran','Mengatur batas pengeluaran per kategori agar keuangan tetap sesuai rencana.'],
-    ['repeat','Transaksi Berulang','Mencatat pemasukan atau pengeluaran rutin secara terjadwal agar tidak perlu mengisi ulang dari awal.'],
-    ['goals','Target Tabungan','Menentukan tujuan tabungan, memantau progresnya, dan menambahkan dana sampai target tercapai.'],
-    ['bills','Tagihan','Mencatat tagihan dan tanggal jatuh tempo supaya kewajiban rutin lebih mudah dipantau.'],
-    ['settings','Saldo Awal','Menetapkan saldo awal keluarga yang menjadi dasar perhitungan saldo berjalan.'],
-  ]
-  const activeTab=tabs.find(([k])=>k===tab)||tabs[0]
-  return <div className="card professional-card">
-    <div className="pro-head"><div><h3>Keuangan Profesional</h3><p>Kelola anggaran, transaksi rutin, target, tagihan, dan saldo awal.</p></div></div>
-    <div className="pro-tabs">{tabs.map(([k,l])=><button key={k} className={tab===k?'active':''} onClick={()=>setTab(k)}>{l}</button>)}</div>
-    <div className="pro-tab-info"><strong>{activeTab[1]}</strong><span>{activeTab[2]}</span></div>
-    {tab==='budget'&&<section><form className="inline-form" onSubmit={addBudget}><select value={form.kategori} onChange={e=>setForm({...form,kategori:e.target.value})} required><option value="">Kategori</option>{categories.map(c=><option key={c.nama}>{c.nama}</option>)}</select><input inputMode="numeric" placeholder="Batas Rp" value={form.batas} onChange={e=>setForm({...form,batas:e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')})} required/><button className="btn btn-primary" disabled={saving}>Simpan anggaran bulan ini</button></form>{budget.filter(b=>b.bulan===month).some(b=>(spentByCategory[b.kategori]||0)>=Number(b.batas)*.8)&&<div className="budget-alert">⚠️ Beberapa anggaran sudah mencapai 80% atau lebih. Periksa pengeluaran agar tidak melewati batas.</div>}<div className="pro-list">{budget.filter(b=>b.bulan===month).map(b=>{const used=spentByCategory[b.kategori]||0;const pct=Math.min(100,used/Number(b.batas)*100);return <div className="pro-row" key={b.id}><div><strong>{b.kategori}</strong><small>{formatRupiah(used)} dari {formatRupiah(b.batas)}</small></div><div className="progress"><span style={{width:`${pct}%`,background:pct>=100?'#B1483A':pct>=80?'#C79A3D':'#2F7A54'}}/></div><b>{Math.round(pct)}%</b></div>})}</div></section>}
-    {tab==='repeat'&&<section><form className="inline-form" onSubmit={addRepeat}><select value={form.tipe} onChange={e=>setForm({...form,tipe:e.target.value})}><option value="pengeluaran">Pengeluaran</option><option value="pemasukan">Pemasukan</option></select><input placeholder="Kategori" value={form.kategori} onChange={e=>setForm({...form,kategori:e.target.value})} required/><input inputMode="numeric" placeholder="Nominal" value={form.nominal} onChange={e=>setForm({...form,nominal:e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')})} required/><select value={form.frekuensi} onChange={e=>setForm({...form,frekuensi:e.target.value})}><option>harian</option><option>mingguan</option><option>bulanan</option><option>tahunan</option></select><input type="date" value={form.jatuh_tempo} onChange={e=>setForm({...form,jatuh_tempo:e.target.value})}/><button className="btn btn-primary">Tambah</button></form><div className="pro-list">{repeat.map(r=><div className="pro-row" key={r.id}><div><strong>{r.kategori} · {formatRupiah(r.jumlah)}</strong><small>{r.frekuensi} · berikutnya {r.tanggal_berikutnya}</small></div><button className="btn btn-ghost" onClick={()=>catatRepeat(r)}>Catat sekarang</button></div>)}</div></section>}
-    {tab==='goals'&&<section><form className="inline-form" onSubmit={addGoal}><input placeholder="Nama target" value={form.nama} onChange={e=>setForm({...form,nama:e.target.value})} required/><input inputMode="numeric" placeholder="Target Rp" value={form.target} onChange={e=>setForm({...form,target:e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')})} required/><input type="date" value={form.tenggat} onChange={e=>setForm({...form,tenggat:e.target.value})}/><button className="btn btn-primary">Tambah target</button></form><div className="pro-list">{goals.map(g=>{const pct=Math.min(100,Number(g.terkumpul)/Number(g.target)*100);return <div className="pro-row" key={g.id}><div><strong>{g.nama}</strong><small>{formatRupiah(g.terkumpul)} / {formatRupiah(g.target)}{g.tenggat?` · tenggat ${g.tenggat}`:''}</small></div><div className="progress"><span style={{width:`${pct}%`}}/></div><button className="btn btn-ghost" onClick={()=>updateGoal(g)}>Tambah</button></div>})}</div></section>}
-    {tab==='bills'&&<section><form className="inline-form" onSubmit={addBill}><input placeholder="Nama tagihan" value={form.nama} onChange={e=>setForm({...form,nama:e.target.value})} required/><input inputMode="numeric" placeholder="Nominal Rp" value={form.nominal} onChange={e=>setForm({...form,nominal:e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.')})} required/><input type="date" value={form.jatuh_tempo} onChange={e=>setForm({...form,jatuh_tempo:e.target.value})}/><button className="btn btn-primary">Tambah tagihan</button></form><div className="pro-list">{bills.map(b=><div className="pro-row" key={b.id}><div><strong>{b.nama}</strong><small>{formatRupiah(b.nominal)} · jatuh tempo {b.jatuh_tempo}</small></div><button className="btn btn-ghost" onClick={()=>toggleBill(b)}>{b.status==='lunas'?'Tandai belum lunas':'Tandai lunas'}</button></div>)}</div></section>}
-    {tab==='settings'&&<section><div className="inline-form"><input inputMode="numeric" value={saldo} onChange={e=>setSaldo(e.target.value.replace(/\D/g,'').replace(/\B(?=(\d{3})+(?!\d))/g,'.'))}/><button className="btn btn-primary" onClick={saveSaldo}>Simpan saldo awal</button></div><p className="hint">Saldo awal digunakan dalam perhitungan saldo: saldo awal + pemasukan − pengeluaran.</p></section>}
-  </div>
+  const spentByCategory = useMemo(
+    () =>
+      transactions
+        .filter((t) => t.tipe === "pengeluaran")
+        .reduce((a, t) => {
+          a[t.kategori] = (a[t.kategori] || 0) + Number(t.jumlah);
+          return a;
+        }, {}),
+    [transactions],
+  );
+  async function saveSaldo() {
+    const n = Number(saldo.replace(/\D/g, "")) || 0;
+    const { error } = await supabase
+      .from("keluarga")
+      .update({ saldo_awal: n })
+      .eq("id", profile.keluarga_id);
+    if (error) return alert(error.message);
+    onSaldoAwalSaved && onSaldoAwalSaved(n);
+  }
+  async function addBudget(e) {
+    e.preventDefault();
+    setSaving(true);
+    const n = Number(form.batas.replace(/\D/g, ""));
+    const { error } = await supabase.from("anggaran").upsert(
+      {
+        keluarga_id: profile.keluarga_id,
+        kategori: form.kategori,
+        bulan: month,
+        batas: n,
+        created_by: profile.id,
+      },
+      { onConflict: "keluarga_id,kategori,bulan" },
+    );
+    setSaving(false);
+    if (error) return alert(error.message);
+    setForm({ ...form, kategori: "", batas: "" });
+    load();
+  }
+  async function addGoal(e) {
+    e.preventDefault();
+    const { error } = await supabase.from("target_tabungan").insert({
+      keluarga_id: profile.keluarga_id,
+      nama: form.nama,
+      target: Number(form.target.replace(/\D/g, "")),
+      tenggat: form.tenggat || null,
+    });
+    if (error) return alert(error.message);
+    setForm({ ...form, nama: "", target: "", tenggat: "" });
+    load();
+  }
+  async function addBill(e) {
+    e.preventDefault();
+    const { error } = await supabase.from("tagihan").insert({
+      keluarga_id: profile.keluarga_id,
+      nama: form.nama,
+      nominal: Number(form.nominal.replace(/\D/g, "")),
+      jatuh_tempo: form.jatuh_tempo,
+      berulang: form.frekuensi !== "sekali",
+    });
+    if (error) return alert(error.message);
+    setForm({ ...form, nama: "", nominal: "" });
+    load();
+  }
+  async function addRepeat(e) {
+    e.preventDefault();
+    const { error } = await supabase.from("transaksi_berulang").insert({
+      keluarga_id: profile.keluarga_id,
+      user_id: profile.id,
+      tipe: form.tipe,
+      kategori: form.kategori,
+      jumlah: Number(form.nominal.replace(/\D/g, "")),
+      sumber_tujuan: form.sumber_tujuan || null,
+      keterangan: form.keterangan || null,
+      frekuensi: form.frekuensi,
+      tanggal_berikutnya: form.jatuh_tempo,
+    });
+    if (error) return alert(error.message);
+    setForm({
+      ...form,
+      kategori: "",
+      nominal: "",
+      sumber_tujuan: "",
+      keterangan: "",
+    });
+    load();
+  }
+  async function catatRepeat(r) {
+    const { error } = await supabase.from("transaksi").insert({
+      user_id: profile.id,
+      tipe: r.tipe,
+      kategori: r.kategori,
+      jumlah: r.jumlah,
+      sumber_tujuan: r.sumber_tujuan,
+      keterangan: `Transaksi berulang: ${r.keterangan || ""}`.trim(),
+      tanggal: toISODateLocal(new Date()),
+    });
+    if (error) return alert(error.message);
+    alert("Transaksi berulang berhasil dicatat hari ini.");
+  }
+  async function updateGoal(g) {
+    const v = prompt(`Tambah tabungan untuk ${g.nama}:`, "0");
+    if (v === null) return;
+    const add = Number(v.replace(/\D/g, "")) || 0;
+    if (!add) return;
+    const { error } = await supabase
+      .from("target_tabungan")
+      .update({ terkumpul: Number(g.terkumpul) + add })
+      .eq("id", g.id);
+    if (error) return alert(error.message);
+    load();
+  }
+  async function toggleBill(b) {
+    const { error } = await supabase
+      .from("tagihan")
+      .update({ status: b.status === "lunas" ? "belum" : "lunas" })
+      .eq("id", b.id);
+    if (error) return alert(error.message);
+    load();
+  }
+  const tabs = [
+    [
+      "budget",
+      "Anggaran",
+      "Mengatur batas pengeluaran per kategori agar keuangan tetap sesuai rencana.",
+    ],
+    [
+      "repeat",
+      "Transaksi Berulang",
+      "Mencatat pemasukan atau pengeluaran rutin secara terjadwal agar tidak perlu mengisi ulang dari awal.",
+    ],
+    [
+      "goals",
+      "Target Tabungan",
+      "Menentukan tujuan tabungan, memantau progresnya, dan menambahkan dana sampai target tercapai.",
+    ],
+    [
+      "bills",
+      "Tagihan",
+      "Mencatat tagihan dan tanggal jatuh tempo supaya kewajiban rutin lebih mudah dipantau.",
+    ],
+    [
+      "settings",
+      "Saldo Awal",
+      "Menetapkan saldo awal keluarga yang menjadi dasar perhitungan saldo berjalan.",
+    ],
+  ];
+  const activeTab = tabs.find(([k]) => k === tab) || tabs[0];
+  return (
+    <div className="card professional-card">
+      <div className="pro-head">
+        <div>
+          <h3>Alat Keuangan</h3>
+          <p>
+            Kelola anggaran, transaksi rutin, target tabungan, tagihan, dan
+            saldo awal.
+          </p>
+        </div>
+      </div>
+      <div className="pro-tabs">
+        {tabs.map(([k, l]) => (
+          <button
+            key={k}
+            className={tab === k ? "active" : ""}
+            onClick={() => setTab(k)}
+          >
+            {l}
+          </button>
+        ))}
+      </div>
+      <div className="pro-tab-info">
+        <strong>{activeTab[1]}</strong>
+        <span>{activeTab[2]}</span>
+      </div>
+      {tab === "budget" && (
+        <section>
+          <form className="inline-form" onSubmit={addBudget}>
+            <select
+              value={form.kategori}
+              onChange={(e) => setForm({ ...form, kategori: e.target.value })}
+              required
+            >
+              <option value="">Kategori</option>
+              {categories.map((c) => (
+                <option key={c.nama}>{c.nama}</option>
+              ))}
+            </select>
+            <input
+              inputMode="numeric"
+              placeholder="Batas Rp"
+              value={form.batas}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  batas: e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                })
+              }
+              required
+            />
+            <button className="btn btn-primary" disabled={saving}>
+              Simpan anggaran bulan ini
+            </button>
+          </form>
+          {budget
+            .filter((b) => b.bulan === month)
+            .some(
+              (b) =>
+                (spentByCategory[b.kategori] || 0) >= Number(b.batas) * 0.8,
+            ) && (
+            <div className="budget-alert">
+              ⚠️ Beberapa anggaran sudah mencapai 80% atau lebih. Periksa
+              pengeluaran agar tidak melewati batas.
+            </div>
+          )}
+          <div className="pro-list">
+            {budget
+              .filter((b) => b.bulan === month)
+              .map((b) => {
+                const used = spentByCategory[b.kategori] || 0;
+                const pct = Math.min(100, (used / Number(b.batas)) * 100);
+                return (
+                  <div className="pro-row" key={b.id}>
+                    <div>
+                      <strong>{b.kategori}</strong>
+                      <small>
+                        {formatRupiah(used)} dari {formatRupiah(b.batas)}
+                      </small>
+                    </div>
+                    <div className="progress">
+                      <span
+                        style={{
+                          width: `${pct}%`,
+                          background:
+                            pct >= 100
+                              ? "#B1483A"
+                              : pct >= 80
+                                ? "#C79A3D"
+                                : "#2F7A54",
+                        }}
+                      />
+                    </div>
+                    <b>{Math.round(pct)}%</b>
+                  </div>
+                );
+              })}
+          </div>
+        </section>
+      )}
+      {tab === "repeat" && (
+        <section>
+          <form className="inline-form" onSubmit={addRepeat}>
+            <select
+              value={form.tipe}
+              onChange={(e) => setForm({ ...form, tipe: e.target.value })}
+            >
+              <option value="pengeluaran">Pengeluaran</option>
+              <option value="pemasukan">Pemasukan</option>
+            </select>
+            <input
+              placeholder="Kategori"
+              value={form.kategori}
+              onChange={(e) => setForm({ ...form, kategori: e.target.value })}
+              required
+            />
+            <input
+              inputMode="numeric"
+              placeholder="Nominal"
+              value={form.nominal}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  nominal: e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                })
+              }
+              required
+            />
+            <select
+              value={form.frekuensi}
+              onChange={(e) => setForm({ ...form, frekuensi: e.target.value })}
+            >
+              <option>harian</option>
+              <option>mingguan</option>
+              <option>bulanan</option>
+              <option>tahunan</option>
+            </select>
+            <input
+              type="date"
+              value={form.jatuh_tempo}
+              onChange={(e) =>
+                setForm({ ...form, jatuh_tempo: e.target.value })
+              }
+            />
+            <button className="btn btn-primary">Tambah</button>
+          </form>
+          <div className="pro-list">
+            {repeat.map((r) => (
+              <div className="pro-row" key={r.id}>
+                <div>
+                  <strong>
+                    {r.kategori} · {formatRupiah(r.jumlah)}
+                  </strong>
+                  <small>
+                    {r.frekuensi} · berikutnya {r.tanggal_berikutnya}
+                  </small>
+                </div>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => catatRepeat(r)}
+                >
+                  Catat sekarang
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {tab === "goals" && (
+        <section>
+          <form className="inline-form" onSubmit={addGoal}>
+            <input
+              placeholder="Nama target"
+              value={form.nama}
+              onChange={(e) => setForm({ ...form, nama: e.target.value })}
+              required
+            />
+            <input
+              inputMode="numeric"
+              placeholder="Target Rp"
+              value={form.target}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  target: e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                })
+              }
+              required
+            />
+            <input
+              type="date"
+              value={form.tenggat}
+              onChange={(e) => setForm({ ...form, tenggat: e.target.value })}
+            />
+            <button className="btn btn-primary">Tambah target</button>
+          </form>
+          <div className="pro-list">
+            {goals.map((g) => {
+              const pct = Math.min(
+                100,
+                (Number(g.terkumpul) / Number(g.target)) * 100,
+              );
+              return (
+                <div className="pro-row" key={g.id}>
+                  <div>
+                    <strong>{g.nama}</strong>
+                    <small>
+                      {formatRupiah(g.terkumpul)} / {formatRupiah(g.target)}
+                      {g.tenggat ? ` · tenggat ${g.tenggat}` : ""}
+                    </small>
+                  </div>
+                  <div className="progress">
+                    <span style={{ width: `${pct}%` }} />
+                  </div>
+                  <button
+                    className="btn btn-ghost"
+                    onClick={() => updateGoal(g)}
+                  >
+                    Tambah
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      )}
+      {tab === "bills" && (
+        <section>
+          <form className="inline-form" onSubmit={addBill}>
+            <input
+              placeholder="Nama tagihan"
+              value={form.nama}
+              onChange={(e) => setForm({ ...form, nama: e.target.value })}
+              required
+            />
+            <input
+              inputMode="numeric"
+              placeholder="Nominal Rp"
+              value={form.nominal}
+              onChange={(e) =>
+                setForm({
+                  ...form,
+                  nominal: e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                })
+              }
+              required
+            />
+            <input
+              type="date"
+              value={form.jatuh_tempo}
+              onChange={(e) =>
+                setForm({ ...form, jatuh_tempo: e.target.value })
+              }
+            />
+            <button className="btn btn-primary">Tambah tagihan</button>
+          </form>
+          <div className="pro-list">
+            {bills.map((b) => (
+              <div className="pro-row" key={b.id}>
+                <div>
+                  <strong>{b.nama}</strong>
+                  <small>
+                    {formatRupiah(b.nominal)} · jatuh tempo {b.jatuh_tempo}
+                  </small>
+                </div>
+                <button className="btn btn-ghost" onClick={() => toggleBill(b)}>
+                  {b.status === "lunas" ? "Tandai belum lunas" : "Tandai lunas"}
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
+      {tab === "settings" && (
+        <section>
+          <div className="inline-form">
+            <input
+              inputMode="numeric"
+              value={saldo}
+              onChange={(e) =>
+                setSaldo(
+                  e.target.value
+                    .replace(/\D/g, "")
+                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
+                )
+              }
+            />
+            <button className="btn btn-primary" onClick={saveSaldo}>
+              Simpan saldo awal
+            </button>
+          </div>
+          <p className="hint">
+            Saldo awal digunakan dalam perhitungan saldo: saldo awal + pemasukan
+            − pengeluaran.
+          </p>
+        </section>
+      )}
+    </div>
+  );
 }
