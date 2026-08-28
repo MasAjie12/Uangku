@@ -93,14 +93,23 @@ export default function ReminderBell() {
         <span aria-hidden="true">🔔</span>{count > 0 && <b>{count > 9 ? '9+' : count}</b>}
       </button>
       {open && (
-        <div className="reminder-popover">
-          <div className="reminder-popover-head"><strong>Pengingat</strong><span>{loading ? 'Memuat…' : `${count} aktif`}</span></div>
-          {count === 0 ? <p className="reminder-empty">Tidak ada pengingat aktif. Keuangan Anda terlihat aman.</p> : reminders.map((r) => (
-            <button className="reminder-item" key={r.id} onClick={() => goTo(r.tab)}>
-              <span className="reminder-icon">{r.icon}</span><span><strong>{r.title}</strong><small>{r.body}</small></span>
-            </button>
-          ))}
-        </div>
+        <>
+          <div className="reminder-backdrop" onClick={() => setOpen(false)} aria-hidden="true" />
+          <div className="reminder-popover" role="dialog" aria-label="Daftar pengingat">
+            <div className="reminder-popover-head">
+              <strong>Pengingat</strong>
+              <span>{loading ? 'Memuat…' : `${count} aktif`}</span>
+              <button className="reminder-close" onClick={() => setOpen(false)} aria-label="Tutup pengingat">✕</button>
+            </div>
+            <div className="reminder-popover-body">
+              {count === 0 ? <p className="reminder-empty">Tidak ada pengingat aktif. Keuangan Anda terlihat aman.</p> : reminders.map((r) => (
+                <button className="reminder-item" key={r.id} onClick={() => goTo(r.tab)}>
+                  <span className="reminder-icon">{r.icon}</span><span><strong>{r.title}</strong><small>{r.body}</small></span>
+                </button>
+              ))}
+            </div>
+          </div>
+        </>
       )}
     </div>
   )
