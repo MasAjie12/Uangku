@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient'
 import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
+import Fitur from './pages/Fitur'
 import Laporan from './pages/Laporan'
 import Pengaturan from './pages/Pengaturan'
 import Navbar from './components/Navbar'
@@ -46,7 +47,7 @@ function App() {
   if (session === undefined || (session && profile === null)) {
     return (
       <div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'Inter, sans-serif', color: '#3C554C' }}>
-        Tunggu Sebentar ya…
+        Memuat Uangku…
       </div>
     )
   }
@@ -61,6 +62,7 @@ function App() {
               <Route path="/login" element={session ? <Navigate to="/" /> : <Login />} />
               <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
               <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
+              <Route path="/fitur" element={session ? <Fitur /> : <Navigate to="/login" />} />
               <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
               <Route path="/pengaturan" element={session ? <Pengaturan /> : <Navigate to="/login" />} />
               <Route path="*" element={<Navigate to="/" />} />
