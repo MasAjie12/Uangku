@@ -1,5 +1,5 @@
 import React, { useEffect, useState, createContext, useContext } from 'react'
-import { Routes, Route, Navigate } from 'react-router-dom'
+import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Login from './pages/Login'
 import Register from './pages/Register'
@@ -56,18 +56,32 @@ function App() {
       <div className="app-shell">
         {session && <Navbar />}
         <main className="app-main">
-          <Routes>
-            <Route path="/login" element={session ? <Navigate to="/" /> : <Login />} />
-            <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
-            <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
-            <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
-            <Route path="/pengaturan" element={session ? <Pengaturan /> : <Navigate to="/login" />} />
-            <Route path="*" element={<Navigate to="/" />} />
-          </Routes>
+          <PageTransition>
+            <Routes>
+              <Route path="/login" element={session ? <Navigate to="/" /> : <Login />} />
+              <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
+              <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
+              <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
+              <Route path="/pengaturan" element={session ? <Pengaturan /> : <Navigate to="/login" />} />
+              <Route path="*" element={<Navigate to="/" />} />
+            </Routes>
+          </PageTransition>
         </main>
         <Footer />
       </div>
     </AuthContext.Provider>
+  )
+}
+
+// Membungkus tiap halaman dengan animasi fade + geser halus saat berpindah route.
+// key={pathname} membuat React memasang ulang node ini setiap ganti halaman,
+// sehingga animasi CSS "page-enter" otomatis terputar dari awal.
+function PageTransition({ children }) {
+  const location = useLocation()
+  return (
+    <div key={location.pathname} className="page-enter">
+      {children}
+    </div>
   )
 }
 
