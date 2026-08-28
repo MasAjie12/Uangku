@@ -89,6 +89,25 @@ export default function ProfessionalTools({
     [saldoAwal],
   );
 
+  useEffect(() => {
+    const openPending = () => {
+      const pending = sessionStorage.getItem("uangku:pending-reminder-tab")
+      if (pending) {
+        sessionStorage.removeItem("uangku:pending-reminder-tab")
+        setTab(pending)
+      }
+    }
+    const handler = (event) => {
+      if (event.detail) {
+        sessionStorage.removeItem("uangku:pending-reminder-tab")
+        setTab(event.detail)
+      }
+    }
+    openPending()
+    window.addEventListener("uangku:open-reminder-tab", handler)
+    return () => window.removeEventListener("uangku:open-reminder-tab", handler)
+  }, [])
+
   const spentByCategory = useMemo(
     () =>
       transactions
@@ -733,6 +752,10 @@ export default function ProfessionalTools({
             />
             <button className="btn btn-primary">Tambah target</button>
           </form>
+          {goals.some((g) => { const p = Number(g.target) ? (Number(g.terkumpul || 0) / Number(g.target)) * 100 : 0; return p >= 80 && p < 100 }) && (
+            <div className="goal-alert">🎯 Ada target tabungan yang sudah mencapai 80% atau lebih. Sedikit lagi menuju target!
+            </div>
+          )}
           <div className="pro-list">
             {goals.map((g) => {
               const pct = Math.min(
@@ -860,6 +883,15 @@ export default function ProfessionalTools({
             />
             <button className="btn btn-primary">Tambah tagihan</button>
           </form>
+          {bills.some((b) => {
+            if (b.status === "lunas") return false
+            const [y, m, d] = String(b.jatuh_tempo).split("-").map(Number)
+            const due = new Date(y, (m || 1) - 1, d || 1)
+            const today = new Date(); today.setHours(0,0,0,0)
+            return Math.ceil((due - today) / 86400000) <= 3
+          }) && (
+            <div className="bill-alert">🔔 Ada tagihan yang jatuh tempo dalam 3 hari atau sudah terlambat. Periksa dan tandai lunas setelah dibayar.</div>
+          )}
           <div className="pro-list">
             {bills.map((b) => {
               const editing = editSection === "bill" && editId === b.id;
