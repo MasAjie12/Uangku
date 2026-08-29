@@ -5,7 +5,6 @@ import ProfessionalTools from '../components/ProfessionalTools'
 
 export default function Fitur() {
   const [items, setItems] = useState([])
-  const [saldoAwal, setSaldoAwal] = useState(0)
   const [loading, setLoading] = useState(true)
   const { session, profile } = useAuth()
 
@@ -16,16 +15,6 @@ export default function Fitur() {
       .order('created_at', { ascending: false })
       .limit(200)
     setItems(data || [])
-    if (profile?.keluarga_id) {
-      const { data: prof } = await supabase
-        .from('profiles')
-        .select('keluarga_id, keluarga(saldo_awal)')
-        .eq('id', session?.user?.id || '')
-        .maybeSingle()
-      setSaldoAwal(Number(prof?.keluarga?.saldo_awal || 0))
-    } else {
-      setSaldoAwal(0)
-    }
     setLoading(false)
   }, [session, profile?.keluarga_id])
 
@@ -47,7 +36,7 @@ export default function Fitur() {
       <div style={{ marginBottom: '1.2rem' }}>
         <h2 style={{ fontSize: '1.5rem' }}>Fitur</h2>
         <p style={{ color: '#3C554C', marginTop: 4 }}>
-          Alat bantu keuangan: anggaran, transaksi berulang, target tabungan, tagihan, dan saldo awal.
+          Alat bantu keuangan: anggaran, transaksi berulang, target tabungan, dan tagihan.
         </p>
       </div>
 
@@ -55,11 +44,7 @@ export default function Fitur() {
         {loading ? (
           <p style={{ color: '#3C554C' }}>Memuat…</p>
         ) : (
-          <ProfessionalTools
-            transactions={items}
-            saldoAwal={saldoAwal}
-            onSaldoAwalSaved={(v) => setSaldoAwal(v)}
-          />
+          <ProfessionalTools transactions={items} />
         )}
       </div>
     </div>
