@@ -15,11 +15,7 @@ const TABEL = {
   bill: "tagihan",
 };
 
-export default function ProfessionalTools({
-  transactions = [],
-  saldoAwal,
-  onSaldoAwalSaved,
-}) {
+export default function ProfessionalTools({ transactions = [] }) {
   const { profile } = useAuth();
   const [tab, setTab] = useState("budget");
   const [budget, setBudget] = useState([]),
@@ -28,9 +24,6 @@ export default function ProfessionalTools({
     [repeat, setRepeat] = useState([]);
   const [categories, setCategories] = useState([]);
   const [saving, setSaving] = useState(false);
-  const [saldo, setSaldo] = useState(
-    String(saldoAwal || 0).replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-  );
   const [form, setForm] = useState({
     kategori: "",
     batas: "",
@@ -83,11 +76,6 @@ export default function ProfessionalTools({
   useEffect(() => {
     load();
   }, []);
-  useEffect(
-    () =>
-      setSaldo(String(saldoAwal || 0).replace(/\B(?=(\d{3})+(?!\d))/g, ".")),
-    [saldoAwal],
-  );
 
   useEffect(() => {
     const openPending = () => {
@@ -118,15 +106,6 @@ export default function ProfessionalTools({
         }, {}),
     [transactions],
   );
-  async function saveSaldo() {
-    const n = Number(saldo.replace(/\D/g, "")) || 0;
-    const { error } = await supabase
-      .from("keluarga")
-      .update({ saldo_awal: n })
-      .eq("id", profile.keluarga_id);
-    if (error) return alert(error.message);
-    onSaldoAwalSaved && onSaldoAwalSaved(n);
-  }
   async function addBudget(e) {
     e.preventDefault();
     setSaving(true);
@@ -383,11 +362,6 @@ export default function ProfessionalTools({
       "Tagihan",
       "Mencatat tagihan dan tanggal jatuh tempo supaya kewajiban rutin lebih mudah dipantau.",
     ],
-    [
-      "settings",
-      "Saldo Awal",
-      "Menetapkan saldo awal keluarga yang menjadi dasar perhitungan saldo berjalan.",
-    ],
   ];
   const activeTab = tabs.find(([k]) => k === tab) || tabs[0];
 
@@ -403,8 +377,7 @@ export default function ProfessionalTools({
         <div>
           <h3>Alat Keuangan</h3>
           <p>
-            Kelola anggaran, transaksi rutin, target tabungan, tagihan, dan
-            saldo awal.
+            Kelola anggaran, transaksi rutin, target tabungan, dan tagihan.
           </p>
         </div>
       </div>
@@ -968,31 +941,6 @@ export default function ProfessionalTools({
               );
             })}
           </div>
-        </section>
-      )}
-      {tab === "settings" && (
-        <section>
-          <div className="inline-form">
-            <input
-              inputMode="numeric"
-              value={saldo}
-              onChange={(e) =>
-                setSaldo(
-                  e.target.value
-                    .replace(/\D/g, "")
-                    .replace(/\B(?=(\d{3})+(?!\d))/g, "."),
-                )
-              }
-            />
-            <button className="btn btn-primary" onClick={saveSaldo}>
-              Simpan saldo awal
-            </button>
-          </div>
-          <p className="hint">
-            Saldo awal digunakan dalam perhitungan saldo: saldo awal + pemasukan
-            − pengeluaran. Menyimpan angka baru akan langsung menggantikan
-            (mengedit) nilai saldo awal sebelumnya.
-          </p>
         </section>
       )}
     </div>
