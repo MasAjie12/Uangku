@@ -401,10 +401,12 @@ export default function Pengaturan() {
               </div>
               <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
-                  <label style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
-                    <span>Email <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional)</span></span>
-                    {isSelf && !emailPendingMap[a.id] && emailMap[a.id] && (
-                      <span style={{ fontWeight: 700, color: '#2F7A54', whiteSpace: 'nowrap' }}>✓ Terkonfirmasi</span>
+                  <label>
+                    Email{' '}
+                    {isSelf && !emailPendingMap[a.id] && emailMap[a.id] ? (
+                      <span style={{ fontWeight: 700, color: '#2F7A54' }}>✓ Terkonfirmasi</span>
+                    ) : (
+                      <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional)</span>
                     )}
                   </label>
                   {isSelf ? (
