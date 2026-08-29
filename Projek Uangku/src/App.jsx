@@ -3,6 +3,8 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { supabase } from './supabaseClient'
 import Login from './pages/Login'
 import Register from './pages/Register'
+import LupaPassword from './pages/LupaPassword'
+import ResetPassword from './pages/ResetPassword'
 import Dashboard from './pages/Dashboard'
 import Fitur from './pages/Fitur'
 import Laporan from './pages/Laporan'
@@ -16,6 +18,7 @@ export const useAuth = () => useContext(AuthContext)
 function App() {
   const [session, setSession] = useState(undefined) // undefined = belum dicek, null = belum login
   const [profile, setProfile] = useState(null)
+  const location = useLocation()
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => setSession(data.session))
@@ -55,12 +58,14 @@ function App() {
   return (
     <AuthContext.Provider value={{ session, profile, setProfile }}>
       <div className="app-shell">
-        {session && <Navbar />}
+        {session && location.pathname !== '/reset-password' && <Navbar />}
         <main className="app-main">
           <PageTransition>
             <Routes>
               <Route path="/login" element={session ? <Navigate to="/" /> : <Login />} />
               <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
+              <Route path="/lupa-password" element={session ? <Navigate to="/" /> : <LupaPassword />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
               <Route path="/fitur" element={session ? <Fitur /> : <Navigate to="/login" />} />
               <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
