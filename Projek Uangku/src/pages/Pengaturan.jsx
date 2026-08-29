@@ -422,7 +422,7 @@ export default function Pengaturan() {
                   {isSelf && emailPendingMap[a.id] && (
                     <div style={{ marginTop: '0.4rem', padding: '0.5rem 0.6rem', borderRadius: 8, background: '#FFF8E7', border: '1px solid #E9D6A5' }}>
                       <p style={{ fontSize: '0.74rem', color: '#7A5A16', margin: 0, lineHeight: 1.5 }}>
-                        Email <strong>{emailPendingMap[a.id]}</strong> masih menunggu konfirmasi. Buka inbox (dan folder spam) email itu, lalu klik link konfirmasinya. Kalau sudah pernah klik tapi tetap muncul begini, kemungkinan penyebabnya pengaturan <strong>"Secure email change"</strong> di Supabase — minta pemilik project mematikannya di Dashboard.
+                        Email <strong>{emailPendingMap[a.id]}</strong> masih menunggu konfirmasi. Buka inbox (dan folder spam) email itu, lalu klik link konfirmasinya.
                       </p>
                       <button
                         type="button"
@@ -431,7 +431,7 @@ export default function Pengaturan() {
                         style={{ marginTop: '0.4rem', background: 'none', border: 'none', color: '#C79A3D', fontWeight: 700, fontSize: '0.74rem', padding: 0 }}
                       >
                         {kirimUlangLoading ? 'Mengirim…' : 'Kirim ulang link konfirmasi'}
-                      </button>
+                      </button> 
                     </div>
                   )}
                 </div>
