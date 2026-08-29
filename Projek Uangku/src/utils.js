@@ -55,3 +55,18 @@ export function toISODateLocal(date) {
   const d = String(date.getDate()).padStart(2, '0')
   return `${y}-${m}-${d}`
 }
+
+// Nama & peran pencatat sebuah transaksi. Kalau akun pencatatnya masih ada,
+// pakai data profil terkini (bisa berubah kalau nama_tampilan/peran diedit).
+// Kalau akunnya sudah dihapus (user_id jadi null), pakai nama yang dibekukan
+// di kolom dicatat_oleh_nama saat akun itu dihapus, supaya riwayat keluarga
+// tetap terbaca jelas siapa yang mencatatnya dulu.
+export function namaPencatat(tx) {
+  if (tx?.profiles?.nama_tampilan) {
+    return { nama: tx.profiles.nama_tampilan, peran: tx.profiles.peran || 'Anggota', akunDihapus: false }
+  }
+  if (tx?.dicatat_oleh_nama) {
+    return { nama: tx.dicatat_oleh_nama, peran: 'Akun sudah dihapus', akunDihapus: true }
+  }
+  return { nama: '—', peran: 'Anggota', akunDihapus: false }
+}
