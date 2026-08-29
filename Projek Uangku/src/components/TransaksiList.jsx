@@ -22,7 +22,7 @@ export default function TransaksiList({ items, onChanged }) {
     <div className="history-card card">
       <div className="history-toolbar">
         <div>
-          <div className="history-title">Riwayat transaksi</div>
+          <div className="history-title">Riwayat pencatatan</div>
           <div className="history-subtitle">Geser tabel ke samping pada layar HP untuk melihat semua informasi.</div>
         </div>
         <div className="history-count">{items.length} transaksi</div>
