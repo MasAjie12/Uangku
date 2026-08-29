@@ -25,6 +25,10 @@ export default function Pengaturan() {
   const [editNamaKeluarga, setEditNamaKeluarga] = useState(false)
   const [namaKeluargaDraft, setNamaKeluargaDraft] = useState('')
   const [savingKeluarga, setSavingKeluarga] = useState(false)
+  const [tampilkanGabung, setTampilkanGabung] = useState(false)
+  const [kodeGabung, setKodeGabung] = useState('')
+  const [gabungLoading, setGabungLoading] = useState(false)
+  const [gabungPesan, setGabungPesan] = useState('')
   const [pushState, setPushState] = useState({ supported: false, permission: 'default', subscribed: false })
   const [pushBusy, setPushBusy] = useState(false)
   const [pushMessage, setPushMessage] = useState('')
@@ -117,6 +121,47 @@ export default function Pengaturan() {
     setTimeout(() => setDisalin(false), 1500)
   }
 
+  async function gabungKeluarga() {
+    const kode = kodeGabung.trim().toUpperCase()
+    if (kode.length < 4) {
+      setGabungPesan('Masukkan kode undangan yang valid.')
+      return
+    }
+    if (
+      !confirm(
+        `Yakin ingin gabung ke keluarga dengan kode "${kode}"? Kamu akan pindah dari keluarga saat ini — anggaran, target tabungan, tagihan, dan pencatatan baru akan mengikuti keluarga tersebut. Riwayat transaksi lamamu tetap tersimpan.`
+      )
+    )
+      return
+
+    setGabungLoading(true)
+    setGabungPesan('')
+    const { data, error } = await supabase.rpc('gabung_keluarga', { kode_input: kode })
+    setGabungLoading(false)
+
+    if (error) {
+      setGabungPesan('Gagal gabung: ' + error.message)
+      return
+    }
+
+    const hasil = Array.isArray(data) ? data[0] : data
+
+    // Muat ulang profil (keluarga_id sudah berubah di database) supaya
+    // seluruh aplikasi langsung mengikuti keluarga yang baru.
+    const { data: profilBaru } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', session.user.id)
+      .single()
+    if (profilBaru) setProfile(profilBaru)
+
+    setKodeGabung('')
+    setTampilkanGabung(false)
+    setGabungPesan(`Berhasil gabung ke keluarga "${hasil?.nama_keluarga || ''}".`)
+    await muatKeluarga()
+    await muatAnggota()
+  }
+
   return (
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.4rem' }}>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.3rem' }}>Pengaturan</h2>
@@ -158,10 +203,55 @@ export default function Pengaturan() {
             <button className="btn btn-ghost" onClick={salinKode} style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}>
               {disalin ? 'Tersalin!' : 'Salin kode'}
             </button>
+            <button
+              className="btn btn-ghost"
+              onClick={() => { setTampilkanGabung((v) => !v); setGabungPesan('') }}
+              style={{ fontSize: '0.8rem', padding: '0.4rem 0.8rem' }}
+            >
+              {tampilkanGabung ? 'Batal' : 'Gabung Keluarga Lain'}
+            </button>
           </div>
           <p style={{ fontSize: '0.8rem', color: '#3C554C', marginTop: '0.7rem', marginBottom: 0 }}>
             Bagikan kode ini ke anggota keluarga lain. Saat mendaftar, mereka pilih "Gabung pakai kode" lalu masukkan kode di atas.
           </p>
+
+          {tampilkanGabung && (
+            <div style={{ marginTop: '0.9rem', padding: '0.9rem', borderRadius: 10, border: '1px dashed #DED4BE', background: '#fff' }}>
+              <div style={{ fontSize: '0.8rem', color: '#8A7F68', marginBottom: '0.5rem' }}>
+                Lupa memasukkan kode undangan saat daftar? Atau mau pindah ke keluarga lain? Masukkan kodenya di sini.
+              </div>
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <input
+                  value={kodeGabung}
+                  onChange={(e) => setKodeGabung(e.target.value.toUpperCase())}
+                  placeholder="mis. AB12CD"
+                  maxLength={6}
+                  style={{
+                    flex: 1,
+                    minWidth: 140,
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.15em',
+                    fontWeight: 700,
+                    border: '1px solid #DED4BE',
+                    borderRadius: 10,
+                    padding: '0.5rem 0.7rem',
+                  }}
+                />
+                <button className="btn btn-primary" onClick={gabungKeluarga} disabled={gabungLoading}>
+                  {gabungLoading ? 'Memproses…' : 'Gabung'}
+                </button>
+              </div>
+              <p style={{ fontSize: '0.74rem', color: '#8A7F68', marginTop: '0.6rem', marginBottom: 0 }}>
+                Setelah gabung, kamu akan pindah ke keluarga baru itu — anggaran, target tabungan, tagihan, dan pencatatan baru akan mengikuti keluarga tersebut. Riwayat transaksi lamamu tetap tersimpan dan tidak hilang.
+              </p>
+            </div>
+          )}
+
+          {gabungPesan && (
+            <p style={{ fontSize: '0.82rem', marginTop: '0.7rem', marginBottom: 0, color: gabungPesan.startsWith('Gagal') ? '#B1483A' : '#2F7A54' }}>
+              {gabungPesan}
+            </p>
+          )}
         </div>
       )}
 
