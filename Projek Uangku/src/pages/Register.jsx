@@ -1,6 +1,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { supabase, usernameToEmail } from '../supabaseClient'
+import PasswordField from '../components/PasswordField'
 
 export default function Register() {
   const [mode, setMode] = useState('buat') // 'buat' | 'gabung'
@@ -110,7 +111,7 @@ export default function Register() {
           </div>
           <div className="field">
             <label>Kata sandi</label>
-            <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="minimal 6 karakter" />
+            <PasswordField value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="minimal 6 karakter" autoComplete="new-password" />
           </div>
           {error && <p style={{ color: '#B1483A', fontSize: '0.85rem', marginTop: -4 }}>{error}</p>}
           <button className="btn btn-primary" style={{ width: '100%', marginTop: '0.4rem' }} disabled={loading}>
