@@ -4,7 +4,7 @@ import { useAuth } from "../App";
 import TransaksiForm from "../components/TransaksiForm";
 import TransaksiList from "../components/TransaksiList";
 import SummaryCards from "../components/SummaryCards";
-import { formatTanggal, getWeekRange, toISODateLocal } from "../utils";
+import { formatTanggal, getWeekRange, toISODateLocal, namaPencatat } from "../utils";
 
 function awalBulanIni() {
   const d = new Date();
@@ -78,20 +78,21 @@ export default function Dashboard() {
   const filteredItems = useMemo(() => {
     const q = search.trim().toLowerCase();
     if (!q) return items;
-    return items.filter((tx) =>
-      [
+    return items.filter((tx) => {
+      const pencatat = namaPencatat(tx);
+      return [
         tx.kategori,
         tx.sumber_tujuan,
         tx.keterangan,
-        tx.profiles?.nama_tampilan,
-        tx.profiles?.peran,
+        pencatat.nama,
+        pencatat.peran,
         tx.tanggal,
       ]
         .filter(Boolean)
         .join(" ")
         .toLowerCase()
-        .includes(q),
-    );
+        .includes(q);
+    });
   }, [items, search]);
 
   async function hapusPeriode() {
