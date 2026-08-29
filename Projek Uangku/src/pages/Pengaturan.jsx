@@ -146,7 +146,7 @@ export default function Pengaturan() {
           return
         }
         setSavingId(null)
-        setPesan(`Perubahan disimpan. Cek inbox (dan folder spam) di ${emailBersih}, lalu klik link konfirmasinya. Kalau nanti setelah diklik email tetap tidak muncul tersimpan di sini, kemungkinan penyebabnya pengaturan "Secure email change" di Supabase Dashboard yang perlu dimatikan pemilik project.`)
+        setPesan(`Perubahan disimpan. Cek inbox (dan folder spam) di ${emailBersih}, lalu klik link konfirmasinya.`)
         muatAnggota()
         return
       }
