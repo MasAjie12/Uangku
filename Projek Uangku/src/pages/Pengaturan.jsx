@@ -47,7 +47,9 @@ export default function Pengaturan() {
   const [keluarga, setKeluarga] = useState(null)
   const [anggota, setAnggota] = useState([])
   const [emailMap, setEmailMap] = useState({})
+  const [emailPendingMap, setEmailPendingMap] = useState({})
   const [emailDraft, setEmailDraft] = useState('')
+  const [kirimUlangLoading, setKirimUlangLoading] = useState(false)
   const [draft, setDraft] = useState({})
   const [savingId, setSavingId] = useState(null)
   const [pesan, setPesan] = useState('')
@@ -105,8 +107,13 @@ export default function Pengaturan() {
 
     const { data: emailRows } = await supabase.rpc('get_keluarga_emails')
     const map = {}
-    ;(emailRows || []).forEach((r) => { map[r.profile_id] = r.email })
+    const pendingMap = {}
+    ;(emailRows || []).forEach((r) => {
+      map[r.profile_id] = r.email
+      if (r.email_pending) pendingMap[r.profile_id] = r.email_pending
+    })
     setEmailMap(map)
+    setEmailPendingMap(pendingMap)
     setEmailDraft(map[session.user.id] || '')
   }
 
@@ -139,7 +146,7 @@ export default function Pengaturan() {
           return
         }
         setSavingId(null)
-        setPesan('Perubahan disimpan. Cek inbox email barumu dan klik link konfirmasi supaya email pemulihan aktif.')
+        setPesan(`Perubahan disimpan. Cek inbox (dan folder spam) di ${emailBersih}, lalu klik link konfirmasinya. Kalau nanti setelah diklik email tetap tidak muncul tersimpan di sini, kemungkinan penyebabnya pengaturan "Secure email change" di Supabase Dashboard yang perlu dimatikan pemilik project.`)
         muatAnggota()
         return
       }
@@ -246,6 +253,21 @@ export default function Pengaturan() {
     }
     await supabase.auth.signOut()
     navigate('/login')
+  }
+
+  async function kirimUlangKonfirmasiEmail() {
+    const emailTujuan = emailPendingMap[session.user.id] || emailDraft.trim().toLowerCase()
+    if (!emailTujuan) return
+    setKirimUlangLoading(true)
+    setPesan('')
+    const { error } = await supabase.auth.updateUser({ email: emailTujuan })
+    setKirimUlangLoading(false)
+    if (error) {
+      setPesan('Gagal mengirim ulang: ' + error.message)
+      return
+    }
+    setPesan(`Link konfirmasi baru sudah dikirim ke ${emailTujuan}. Cek inbox & folder spam, lalu klik link di email itu.`)
+    muatAnggota()
   }
 
   return (
@@ -388,7 +410,25 @@ export default function Pengaturan() {
                       onChange={(e) => setEmailDraft(e.target.value)}
                     />
                   ) : (
-                    <input value={emailMap[a.id] || 'Belum ada email'} disabled />
+                    <input value={emailMap[a.id] || (emailPendingMap[a.id] ? `${emailPendingMap[a.id]} (menunggu konfirmasi)` : 'Belum ada email')} disabled />
+                  )}
+                  {isSelf && emailPendingMap[a.id] && (
+                    <div style={{ marginTop: '0.4rem', padding: '0.5rem 0.6rem', borderRadius: 8, background: '#FFF8E7', border: '1px solid #E9D6A5' }}>
+                      <p style={{ fontSize: '0.74rem', color: '#7A5A16', margin: 0, lineHeight: 1.5 }}>
+                        Email <strong>{emailPendingMap[a.id]}</strong> masih menunggu konfirmasi. Buka inbox (dan folder spam) email itu, lalu klik link konfirmasinya. Kalau sudah pernah klik tapi tetap muncul begini, kemungkinan penyebabnya pengaturan <strong>"Secure email change"</strong> di Supabase — minta pemilik project mematikannya di Dashboard.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={kirimUlangKonfirmasiEmail}
+                        disabled={kirimUlangLoading}
+                        style={{ marginTop: '0.4rem', background: 'none', border: 'none', color: '#C79A3D', fontWeight: 700, fontSize: '0.74rem', padding: 0 }}
+                      >
+                        {kirimUlangLoading ? 'Mengirim…' : 'Kirim ulang link konfirmasi'}
+                      </button>
+                    </div>
+                  )}
+                  {isSelf && !emailPendingMap[a.id] && emailMap[a.id] && (
+                    <span style={{ fontSize: '0.72rem', color: '#2F7A54' }}>✓ Email tersimpan & terkonfirmasi.</span>
                   )}
                 </div>
                 <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
