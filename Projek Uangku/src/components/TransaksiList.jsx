@@ -1,5 +1,5 @@
 import React, { useMemo, useState } from 'react'
-import { formatRupiah, formatTanggal, formatTanggalJam } from '../utils'
+import { formatRupiah, formatTanggal, formatTanggalJam, namaPencatat } from '../utils'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
 
@@ -47,6 +47,7 @@ export default function TransaksiList({ items, onChanged }) {
             {shown.map((tx) => {
               const masuk = tx.tipe === 'pemasukan'
               const milikSaya = tx.user_id === session.user.id
+              const pencatat = namaPencatat(tx)
               return <tr key={tx.id}>
                 <td className="history-date">{formatTanggal(tx.tanggal)}</td>
                 <td><span className={`transaction-badge ${masuk ? 'income' : 'expense'}`}>{masuk ? 'Pemasukan' : 'Pengeluaran'}</span></td>
@@ -54,7 +55,7 @@ export default function TransaksiList({ items, onChanged }) {
                 <td className={`history-amount mono ${masuk ? 'income-text' : 'expense-text'}`}>{masuk ? '+' : '−'}{formatRupiah(tx.jumlah)}</td>
                 <td>{tx.sumber_tujuan || <span className="muted">—</span>}</td>
                 <td className="history-wrap">{tx.keterangan || <span className="muted">—</span>}</td>
-                <td><strong>{tx.profiles?.nama_tampilan || '—'}</strong><small className="history-role">{tx.profiles?.peran || 'Anggota'}</small></td>
+                <td><strong>{pencatat.nama}</strong><small className="history-role">{pencatat.peran}</small></td>
                 <td className="history-created">{formatTanggalJam(tx.created_at)}</td>
                 <td>
                   {milikSaya ? <div className="history-actions"><button onClick={() => setEditing(tx)} className="text-button">Edit</button><button onClick={() => hapus(tx.id)} className="text-button danger-text">Hapus</button></div> : <span className="muted">—</span>}
