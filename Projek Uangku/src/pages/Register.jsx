@@ -71,8 +71,15 @@ export default function Register() {
         <form onSubmit={handleSubmit}>
           {mode === 'buat' ? (
             <div className="field">
-              <label>Nama keluarga</label>
-              <input value={namaKeluarga} onChange={(e) => setNamaKeluarga(e.target.value)} placeholder="mis. Keluarga Setiawan" required />
+              <label>Nama keluarga <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional)</span></label>
+              <input
+                value={namaKeluarga}
+                onChange={(e) => setNamaKeluarga(e.target.value)}
+                placeholder="mis. Keluarga Setiawan"
+              />
+              <span style={{ fontSize: '0.78rem', color: '#8A7F68' }}>
+                Boleh dikosongkan dulu — nanti bisa diubah di halaman Pengaturan.
+              </span>
             </div>
           ) : (
             <div className="field">
