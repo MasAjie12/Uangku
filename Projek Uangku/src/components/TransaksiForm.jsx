@@ -94,7 +94,7 @@ export default function TransaksiForm({ onSaved }) {
       </div>
 
       <div className="field">
-        <label>Tanggal transaksi</label>
+        <label>Tanggal pencatatan</label>
         <input type="date" value={tanggal} max={toISODateLocal(new Date())} onChange={(e) => setTanggal(e.target.value)} required />
         <span style={{ fontSize: '0.76rem', color: '#8A7F68' }}>Masukkan tanggal terlebih dahulu, lalu nominal.</span>
       </div>
