@@ -46,6 +46,8 @@ export default function Pengaturan() {
   }
   const [keluarga, setKeluarga] = useState(null)
   const [anggota, setAnggota] = useState([])
+  const [emailMap, setEmailMap] = useState({})
+  const [emailDraft, setEmailDraft] = useState('')
   const [draft, setDraft] = useState({})
   const [savingId, setSavingId] = useState(null)
   const [pesan, setPesan] = useState('')
@@ -100,6 +102,12 @@ export default function Pengaturan() {
     const initDraft = {}
     ;(data || []).forEach((a) => { initDraft[a.id] = { nama_tampilan: a.nama_tampilan, peran: a.peran } })
     setDraft(initDraft)
+
+    const { data: emailRows } = await supabase.rpc('get_keluarga_emails')
+    const map = {}
+    ;(emailRows || []).forEach((r) => { map[r.profile_id] = r.email })
+    setEmailMap(map)
+    setEmailDraft(map[session.user.id] || '')
   }
 
   async function simpan(id) {
@@ -107,14 +115,36 @@ export default function Pengaturan() {
     setPesan('')
     const { nama_tampilan, peran } = draft[id]
     const { error } = await supabase.from('profiles').update({ nama_tampilan, peran }).eq('id', id)
-    setSavingId(null)
     if (error) {
+      setSavingId(null)
       setPesan('Gagal menyimpan: ' + error.message)
       return
     }
     if (id === session.user.id) {
       setProfile((p) => ({ ...p, nama_tampilan, peran }))
+
+      const emailBersih = emailDraft.trim().toLowerCase()
+      const emailSaatIni = emailMap[id] || ''
+      if (emailBersih && emailBersih !== emailSaatIni) {
+        const polaEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+        if (!polaEmail.test(emailBersih)) {
+          setSavingId(null)
+          setPesan('Format email tidak valid.')
+          return
+        }
+        const { error: emailError } = await supabase.auth.updateUser({ email: emailBersih })
+        if (emailError) {
+          setSavingId(null)
+          setPesan('Nama & peran tersimpan, tapi gagal menambahkan email: ' + emailError.message)
+          return
+        }
+        setSavingId(null)
+        setPesan('Perubahan disimpan. Cek inbox email barumu dan klik link konfirmasi supaya email pemulihan aktif.')
+        muatAnggota()
+        return
+      }
     }
+    setSavingId(null)
     setPesan('Perubahan disimpan.')
     muatAnggota()
   }
@@ -348,6 +378,19 @@ export default function Pengaturan() {
                 Username: <strong>{a.username}</strong>{isSelf && ' (kamu)'}
               </div>
               <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+                <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
+                  <label>Email <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional)</span></label>
+                  {isSelf ? (
+                    <input
+                      type="email"
+                      value={emailDraft}
+                      placeholder="mis. nama@gmail.com"
+                      onChange={(e) => setEmailDraft(e.target.value)}
+                    />
+                  ) : (
+                    <input value={emailMap[a.id] || 'Belum ada email'} disabled />
+                  )}
+                </div>
                 <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
                   <label>Nama tampilan</label>
                   <input
