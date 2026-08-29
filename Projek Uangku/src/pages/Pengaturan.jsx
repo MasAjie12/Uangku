@@ -399,9 +399,14 @@ export default function Pengaturan() {
               <div style={{ fontSize: '0.8rem', color: '#8A7F68', marginBottom: '0.6rem' }}>
                 Username: <strong>{a.username}</strong>{isSelf && ' (kamu)'}
               </div>
-              <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', alignItems: 'flex-end' }}>
+              <div style={{ display: 'flex', gap: '0.9rem', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                 <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
-                  <label>Email <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional)</span></label>
+                  <label style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.4rem' }}>
+                    <span>Email <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional)</span></span>
+                    {isSelf && !emailPendingMap[a.id] && emailMap[a.id] && (
+                      <span style={{ fontWeight: 700, color: '#2F7A54', whiteSpace: 'nowrap' }}>✓ Terkonfirmasi</span>
+                    )}
+                  </label>
                   {isSelf ? (
                     <input
                       type="email"
@@ -427,9 +432,6 @@ export default function Pengaturan() {
                       </button>
                     </div>
                   )}
-                  {isSelf && !emailPendingMap[a.id] && emailMap[a.id] && (
-                    <span style={{ fontSize: '0.72rem', color: '#2F7A54' }}>✓ Email tersimpan & terkonfirmasi.</span>
-                  )}
                 </div>
                 <div className="field" style={{ flex: 1, minWidth: 160, marginBottom: 0 }}>
                   <label>Nama tampilan</label>
@@ -449,7 +451,7 @@ export default function Pengaturan() {
                   />
                 </div>
                 {isSelf && (
-                  <button className="btn btn-primary" onClick={() => simpan(a.id)} disabled={savingId === a.id}>
+                  <button className="btn btn-primary" onClick={() => simpan(a.id)} disabled={savingId === a.id} style={{ marginTop: '1.55rem' }}>
                     {savingId === a.id ? 'Menyimpan…' : 'Simpan'}
                   </button>
                 )}
