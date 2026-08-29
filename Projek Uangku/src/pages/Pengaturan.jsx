@@ -29,6 +29,9 @@ export default function Pengaturan() {
   const [kodeGabung, setKodeGabung] = useState('')
   const [gabungLoading, setGabungLoading] = useState(false)
   const [gabungPesan, setGabungPesan] = useState('')
+  const [hapusAkunInput, setHapusAkunInput] = useState('')
+  const [hapusAkunLoading, setHapusAkunLoading] = useState(false)
+  const [hapusAkunPesan, setHapusAkunPesan] = useState('')
   const [pushState, setPushState] = useState({ supported: false, permission: 'default', subscribed: false })
   const [pushBusy, setPushBusy] = useState(false)
   const [pushMessage, setPushMessage] = useState('')
@@ -160,6 +163,31 @@ export default function Pengaturan() {
     setGabungPesan(`Berhasil gabung ke keluarga "${hasil?.nama_keluarga || ''}".`)
     await muatKeluarga()
     await muatAnggota()
+  }
+
+  async function hapusAkun() {
+    if (!profile) return
+    if (hapusAkunInput.trim().toLowerCase() !== profile.username.toLowerCase()) {
+      setHapusAkunPesan('Ketik username kamu persis untuk konfirmasi.')
+      return
+    }
+    if (
+      !confirm(
+        'Ini permanen dan TIDAK BISA DIBATALKAN. Akunmu (username, kata sandi, profil) akan dihapus sepenuhnya dari database sehingga username-nya bisa dipakai orang lain. Riwayat transaksi yang pernah kamu catat tetap tersimpan di keluarga (tidak ikut terhapus), tapi kamu tidak akan bisa login lagi dengan akun ini. Lanjutkan?'
+      )
+    )
+      return
+
+    setHapusAkunLoading(true)
+    setHapusAkunPesan('')
+    const { error } = await supabase.rpc('hapus_akun_saya')
+    if (error) {
+      setHapusAkunLoading(false)
+      setHapusAkunPesan('Gagal menghapus akun: ' + error.message)
+      return
+    }
+    await supabase.auth.signOut()
+    navigate('/login')
   }
 
   return (
@@ -327,6 +355,35 @@ export default function Pengaturan() {
         </p>
         <button className="btn btn-danger" onClick={logout} disabled={loggingOut} style={{ width: '100%' }}>
           {loggingOut ? 'Sedang keluar…' : 'Keluar dari Akun'}
+        </button>
+      </div>
+
+      <div className="card danger-zone" style={{ padding: '1.2rem 1.4rem', marginTop: '1rem' }}>
+        <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem', color: '#B1483A' }}>Hapus Akun</h3>
+        <p style={{ fontSize: '0.82rem', color: '#3C554C', marginTop: 0, marginBottom: '0.9rem', lineHeight: 1.5 }}>
+          Akunmu (username, kata sandi, profil) akan dihapus <strong>permanen</strong> dari database, sehingga
+          username ini bisa dipakai orang lain untuk mendaftar. Riwayat transaksi yang pernah kamu catat{' '}
+          <strong>tetap tersimpan</strong> di riwayat keluarga (tidak ikut terhapus), tapi akan ditandai
+          "akun sudah dihapus" karena kamu tidak akan bisa login lagi dengan akun ini. Tindakan ini tidak bisa dibatalkan.
+        </p>
+        <div className="field" style={{ marginBottom: '0.8rem' }}>
+          <label>Ketik username kamu (<strong>{profile?.username}</strong>) untuk konfirmasi</label>
+          <input
+            value={hapusAkunInput}
+            onChange={(e) => { setHapusAkunInput(e.target.value); setHapusAkunPesan('') }}
+            placeholder={profile?.username}
+          />
+        </div>
+        {hapusAkunPesan && (
+          <p style={{ fontSize: '0.82rem', marginBottom: '0.8rem', color: '#B1483A' }}>{hapusAkunPesan}</p>
+        )}
+        <button
+          className="btn btn-danger"
+          onClick={hapusAkun}
+          disabled={hapusAkunLoading || hapusAkunInput.trim().toLowerCase() !== (profile?.username || '').toLowerCase()}
+          style={{ width: '100%' }}
+        >
+          {hapusAkunLoading ? 'Menghapus akun…' : 'Hapus Akun Permanen'}
         </button>
       </div>
     </div>
