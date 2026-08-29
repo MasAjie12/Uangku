@@ -137,14 +137,14 @@ export default function Dashboard() {
   return (
     <div style={{ maxWidth: 1080, margin: "0 auto", padding: "1.4rem" }}>
       <div style={{ marginBottom: "1.2rem" }}>
-        <h2 style={{ fontSize: "1.5rem" }}>Catatan Uang Anda</h2>
+        <h2 style={{ fontSize: "1.5rem" }}>Catatan Uang Kamu</h2>
         <p style={{ color: "#3C554C", marginTop: 4 }}>
-          Catat pemasukan dan pengeluaran uang anda dengan tanggal transaksi dan
-          waktu pencatatan yang jelas.
+          Catat pemasukan dan pengeluaran uang kamu dengan tanggal dan
+          waktu yang jelas.
         </p>
       </div>
 
-      <h3 style={{ fontSize: "1.1rem", margin: "0 0 0.7rem" }}>Keuangan Anda Bulan Ini</h3>
+      <h3 style={{ fontSize: "1.1rem", margin: "0 0 0.7rem" }}>Keuangan Kamu Bulan Ini</h3>
 
       <div className="professional-dashboard-section" style={{ marginBottom: "1.4rem" }}>
         <SummaryCards
@@ -164,7 +164,7 @@ export default function Dashboard() {
         }}
       >
         <div style={{ minWidth: 0 }}>
-          <h3 style={{ fontSize: "1.05rem", margin: "0 0 0.7rem" }}>Catat Uang Anda</h3>
+          <h3 style={{ fontSize: "1.05rem", margin: "0 0 0.7rem" }}>Catat Uang Kamu</h3>
           <TransaksiForm onSaved={muatData} />
         </div>
         <div style={{ minWidth: 0 }}>
