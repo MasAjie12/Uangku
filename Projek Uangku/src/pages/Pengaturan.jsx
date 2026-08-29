@@ -3,12 +3,40 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
 import KategoriManager from '../components/KategoriManager'
+import PasswordField from '../components/PasswordField'
 import { disablePushNotifications, enablePushNotifications, getPushState, isPushSupported } from '../pushNotifications'
 
 export default function Pengaturan() {
   const { session, profile, setProfile } = useAuth()
   const navigate = useNavigate()
   const [loggingOut, setLoggingOut] = useState(false)
+  const [passwordBaru, setPasswordBaru] = useState('')
+  const [passwordKonfirmasi, setPasswordKonfirmasi] = useState('')
+  const [gantiPasswordLoading, setGantiPasswordLoading] = useState(false)
+  const [gantiPasswordPesan, setGantiPasswordPesan] = useState('')
+
+  async function gantiPassword(e) {
+    e.preventDefault()
+    setGantiPasswordPesan('')
+    if (passwordBaru.length < 6) {
+      setGantiPasswordPesan('Kata sandi baru minimal 6 karakter.')
+      return
+    }
+    if (passwordBaru !== passwordKonfirmasi) {
+      setGantiPasswordPesan('Konfirmasi kata sandi tidak cocok.')
+      return
+    }
+    setGantiPasswordLoading(true)
+    const { error } = await supabase.auth.updateUser({ password: passwordBaru })
+    setGantiPasswordLoading(false)
+    if (error) {
+      setGantiPasswordPesan('Gagal mengubah kata sandi: ' + error.message)
+      return
+    }
+    setPasswordBaru('')
+    setPasswordKonfirmasi('')
+    setGantiPasswordPesan('Kata sandi berhasil diubah.')
+  }
 
   async function logout() {
     if (!confirm('Yakin ingin keluar dari akun ini?')) return
@@ -348,7 +376,32 @@ export default function Pengaturan() {
         })}
       </div>
 
-      <div className="card danger-zone logout-zone" style={{ padding: '1.2rem 1.4rem', marginTop: '1.8rem' }}>
+      <div className="card" style={{ padding: '1.2rem 1.4rem', marginTop: '1.8rem' }}>
+        <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Ganti Password</h3>
+        <p style={{ fontSize: '0.82rem', color: '#3C554C', marginTop: 0, marginBottom: '1rem', lineHeight: 1.5 }}>
+          Kata sandi baru akan langsung berlaku untuk login berikutnya.
+        </p>
+        <form onSubmit={gantiPassword}>
+          <div className="field">
+            <label>Kata sandi baru</label>
+            <PasswordField value={passwordBaru} onChange={(e) => { setPasswordBaru(e.target.value); setGantiPasswordPesan('') }} placeholder="minimal 6 karakter" autoComplete="new-password" />
+          </div>
+          <div className="field">
+            <label>Konfirmasi kata sandi baru</label>
+            <PasswordField value={passwordKonfirmasi} onChange={(e) => { setPasswordKonfirmasi(e.target.value); setGantiPasswordPesan('') }} placeholder="ulangi kata sandi baru" autoComplete="new-password" />
+          </div>
+          {gantiPasswordPesan && (
+            <p style={{ fontSize: '0.82rem', marginBottom: '0.8rem', color: gantiPasswordPesan.startsWith('Gagal') || gantiPasswordPesan.includes('tidak cocok') || gantiPasswordPesan.includes('minimal') ? '#B1483A' : '#2F7A54' }}>
+              {gantiPasswordPesan}
+            </p>
+          )}
+          <button className="btn btn-primary" disabled={gantiPasswordLoading} style={{ width: '100%' }}>
+            {gantiPasswordLoading ? 'Menyimpan…' : 'Simpan Kata Sandi Baru'}
+          </button>
+        </form>
+      </div>
+
+      <div className="card danger-zone logout-zone" style={{ padding: '1.2rem 1.4rem', marginTop: '1rem' }}>
         <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>Logout</h3>
         <p style={{ fontSize: '0.82rem', color: '#3C554C', marginTop: 0, marginBottom: '1rem', lineHeight: 1.5 }}>
           Kamu akan keluar dari akun di perangkat ini. Kamu bisa masuk kembali kapan saja dengan username dan kata sandi yang sama.

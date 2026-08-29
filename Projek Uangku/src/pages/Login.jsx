@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase, usernameToEmail } from '../supabaseClient'
+import { supabase } from '../supabaseClient'
 import PasswordField from '../components/PasswordField'
 
 export default function Login() {
@@ -14,8 +14,14 @@ export default function Login() {
     e.preventDefault()
     setError('')
     setLoading(true)
+    const { data: email, error: lookupError } = await supabase.rpc('get_login_email', { p_username: username })
+    if (lookupError || !email) {
+      setLoading(false)
+      setError('Username atau kata sandi salah.')
+      return
+    }
     const { error } = await supabase.auth.signInWithPassword({
-      email: usernameToEmail(username),
+      email,
       password,
     })
     setLoading(false)
@@ -41,6 +47,9 @@ export default function Login() {
           <div className="field">
             <label>Kata sandi</label>
             <PasswordField value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="••••••••" autoComplete="current-password" />
+            <span style={{ textAlign: 'right' }}>
+              <Link to="/lupa-password" style={{ fontSize: '0.8rem', color: '#C79A3D', fontWeight: 600 }}>Lupa password?</Link>
+            </span>
           </div>
           {error && <p style={{ color: '#B1483A', fontSize: '0.85rem', marginTop: -4 }}>{error}</p>}
           <button className="btn btn-primary" style={{ width: '100%', marginTop: '0.4rem' }} disabled={loading}>

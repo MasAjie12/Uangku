@@ -9,6 +9,7 @@ export default function Register() {
   const [namaTampilan, setNamaTampilan] = useState('')
   const [peran, setPeran] = useState('')
   const [password, setPassword] = useState('')
+  const [emailPemulihan, setEmailPemulihan] = useState('')
   const [namaKeluarga, setNamaKeluarga] = useState('')
   const [kodeUndangan, setKodeUndangan] = useState('')
   const [error, setError] = useState('')
@@ -26,9 +27,15 @@ export default function Register() {
       setError('Masukkan kode undangan yang valid.')
       return
     }
+    const emailBersih = emailPemulihan.trim().toLowerCase()
+    const polaEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+    if (emailBersih && !polaEmail.test(emailBersih)) {
+      setError('Format email pemulihan tidak valid.')
+      return
+    }
     setLoading(true)
     const { error } = await supabase.auth.signUp({
-      email: usernameToEmail(username),
+      email: emailBersih || usernameToEmail(username),
       password,
       options: {
         data: {
@@ -44,7 +51,7 @@ export default function Register() {
     setLoading(false)
     if (error) {
       let pesan = error.message
-      if (pesan.includes('already registered')) pesan = 'Username sudah dipakai.'
+      if (pesan.includes('already registered')) pesan = emailBersih ? 'Email pemulihan itu sudah dipakai akun lain.' : 'Username sudah dipakai.'
       if (pesan.includes('Kode undangan tidak ditemukan')) pesan = 'Kode undangan tidak ditemukan. Periksa kembali kode yang diberikan anggota keluargamu.'
       setError(pesan)
       return
@@ -112,6 +119,18 @@ export default function Register() {
           <div className="field">
             <label>Kata sandi</label>
             <PasswordField value={password} onChange={(e) => setPassword(e.target.value)} required placeholder="minimal 6 karakter" autoComplete="new-password" />
+          </div>
+          <div className="field">
+            <label>Email <span style={{ fontWeight: 400, color: '#8A7F68' }}>(opsional, untuk lupa password)</span></label>
+            <input
+              type="email"
+              value={emailPemulihan}
+              onChange={(e) => setEmailPemulihan(e.target.value)}
+              placeholder="mis. nama@gmail.com"
+            />
+            <span style={{ fontSize: '0.78rem', color: '#8A7F68' }}>
+              Kalau diisi, kamu bisa reset password sendiri lewat email ini jika lupa. Boleh dikosongkan.
+            </span>
           </div>
           {error && <p style={{ color: '#B1483A', fontSize: '0.85rem', marginTop: -4 }}>{error}</p>}
           <button className="btn btn-primary" style={{ width: '100%', marginTop: '0.4rem' }} disabled={loading}>
