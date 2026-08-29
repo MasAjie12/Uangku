@@ -47,7 +47,7 @@ export default function Fitur() {
       <div style={{ marginBottom: '1.2rem' }}>
         <h2 style={{ fontSize: '1.5rem' }}>Fitur</h2>
         <p style={{ color: '#3C554C', marginTop: 4 }}>
-          Alat bantu keuangan keluarga: anggaran, transaksi berulang, target tabungan, tagihan, dan saldo awal.
+          Alat bantu keuangan: anggaran, transaksi berulang, target tabungan, tagihan, dan saldo awal.
         </p>
       </div>
 
