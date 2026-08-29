@@ -146,7 +146,7 @@ export default function Pengaturan() {
           return
         }
         setSavingId(null)
-        setPesan(`Perubahan disimpan. Cek inbox (dan folder spam) di ${emailBersih}, lalu klik link konfirmasinya. Kalau nanti setelah diklik email tetap tidak muncul tersimpan di sini, kemungkinan penyebabnya pengaturan "Secure email change" di Supabase Dashboard yang perlu dimatikan pemilik project.`)
+        setPesan(`Perubahan disimpan. Cek inbox (dan folder spam) di ${emailBersih}, lalu klik link konfirmasinya.`)
         muatAnggota()
         return
       }
@@ -238,7 +238,7 @@ export default function Pengaturan() {
     }
     if (
       !confirm(
-        'Ini permanen dan TIDAK BISA DIBATALKAN. Akunmu (username, kata sandi, profil) akan dihapus sepenuhnya dari database sehingga username-nya bisa dipakai orang lain. Riwayat transaksi yang pernah kamu catat tetap tersimpan di keluarga (tidak ikut terhapus), tapi kamu tidak akan bisa login lagi dengan akun ini. Lanjutkan?'
+        'Ini permanen dan TIDAK BISA DIBATALKAN. Akunmu (username, kata sandi, profil) akan dihapus sepenuhnya dari database. Lanjutkan?'
       )
     )
       return
@@ -422,7 +422,7 @@ export default function Pengaturan() {
                   {isSelf && emailPendingMap[a.id] && (
                     <div style={{ marginTop: '0.4rem', padding: '0.5rem 0.6rem', borderRadius: 8, background: '#FFF8E7', border: '1px solid #E9D6A5', maxWidth: '100%', boxSizing: 'border-box', overflow: 'hidden' }}>
                       <p style={{ fontSize: '0.74rem', color: '#7A5A16', margin: 0, lineHeight: 1.5, wordBreak: 'break-word', overflowWrap: 'anywhere' }}>
-                        Email <strong style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{emailPendingMap[a.id]}</strong> masih menunggu konfirmasi. Buka inbox (dan folder spam) email itu, lalu klik link konfirmasinya. Kalau sudah pernah klik tapi tetap muncul begini, kemungkinan penyebabnya pengaturan <strong>"Secure email change"</strong> di Supabase — minta pemilik project mematikannya di Dashboard.
+                        Email <strong style={{ wordBreak: 'break-word', overflowWrap: 'anywhere' }}>{emailPendingMap[a.id]}</strong> masih menunggu konfirmasi. Buka inbox (dan folder spam) email itu, lalu klik link konfirmasinya.
                       </p>
                       <button
                         type="button"
@@ -501,8 +501,7 @@ export default function Pengaturan() {
       <div className="card danger-zone" style={{ padding: '1.2rem 1.4rem', marginTop: '1rem' }}>
         <h3 style={{ fontSize: '1rem', marginBottom: '0.3rem', color: '#B1483A' }}>Hapus Akun</h3>
         <p style={{ fontSize: '0.82rem', color: '#3C554C', marginTop: 0, marginBottom: '0.9rem', lineHeight: 1.5 }}>
-          Akunmu (username, kata sandi, profil) akan dihapus <strong>permanen</strong> dari database, sehingga
-          username ini bisa dipakai orang lain untuk mendaftar. Riwayat transaksi yang pernah kamu catat{' '}
+          Akunmu (username, kata sandi, profil) akan dihapus <strong>permanen</strong> dari database. Riwayat transaksi yang pernah kamu catat{' '}
           <strong>tetap tersimpan</strong> di riwayat keluarga (tidak ikut terhapus), tapi akan ditandai
           "akun sudah dihapus" karena kamu tidak akan bisa login lagi dengan akun ini. Tindakan ini tidak bisa dibatalkan.
         </p>
