@@ -257,10 +257,10 @@ export default function Cicilan({ embedded = false }) {
       )}
 
       <style>{`
-        .cicilan-summary { display:flex; gap:.9rem; flex-wrap:wrap; margin-bottom:1rem; }
-        .cicilan-summary > div { flex:1 1 160px; border:1px solid #EFE9D9; border-radius:10px; padding:.7rem .9rem; }
-        .cicilan-summary span { display:block; font-size:.72rem; color:#8A7F68; margin-bottom:.25rem; }
-        .cicilan-summary strong { font-size:1rem; color:#16332B; }
+        .cicilan-summary { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.9rem; margin-bottom:1rem; align-items:stretch; }
+        .cicilan-summary > div { display:flex; flex-direction:column; justify-content:center; min-width:0; border:1px solid #EFE9D9; border-radius:10px; padding:.85rem .9rem; }
+        .cicilan-summary span { display:block; font-size:.72rem; color:#8A7F68; margin-bottom:.3rem; }
+        .cicilan-summary strong { font-size:1.05rem; color:#16332B; overflow-wrap:break-word; }
         .cicilan-pie-card { padding:1.3rem; margin-bottom:1.1rem; }
         .cicilan-pie-title { font-size:1rem; margin:0 0 1rem; }
         .cicilan-pie-report-wrap { display:flex; flex-direction:column; min-width:0; }
@@ -296,7 +296,6 @@ export default function Cicilan({ embedded = false }) {
         .cicilan-scroll-hint { display:none; text-align:center; padding:.55rem .75rem; border-top:1px solid #EFE9D9; color:#8A7F68; font-size:.68rem; background:#FFFEFA; }
         .cicilan-scroll-hint span { font-size:.9rem; margin-right:.25rem; }
         @media(max-width:780px){
-          .cicilan-summary{flex-direction:column}
           .cicilan-pie-category-value{font-size:.7rem}
           .cicilan-scroll{ width:100%; overflow-x:scroll; }
           .cicilan-toolbar{ align-items:flex-start; padding:.85rem .9rem; }
