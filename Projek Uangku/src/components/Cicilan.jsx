@@ -96,6 +96,18 @@ export default function Cicilan({ embedded = false }) {
   const totalNominal = items.reduce((s, it) => s + Number(it.nominal), 0)
   const totalBelumLunas = items.filter((it) => !it.lunas).reduce((s, it) => s + Number(it.nominal), 0)
 
+  // Menyesuaikan ukuran font nominal ringkasan berdasarkan panjang angka,
+  // supaya nominal berapapun (ratusan ribu s/d miliaran) tetap muat dalam
+  // satu baris dan kartu tetap simetris, tidak ada digit yang turun baris.
+  function fontSizeNominal(text) {
+    const len = text.length
+    if (len <= 13) return '1.05rem'
+    if (len <= 15) return '0.94rem'
+    if (len <= 17) return '0.84rem'
+    if (len <= 19) return '0.75rem'
+    return '0.66rem'
+  }
+
   const isi = (
     <>
       <form onSubmit={tambah} className="inline-form" style={{ marginBottom: '0.5rem' }}>
@@ -154,11 +166,11 @@ export default function Cicilan({ embedded = false }) {
           <div className="cicilan-summary">
             <div>
               <span>Total nilai cicilan</span>
-              <strong>{formatRupiah(totalNominal)}</strong>
+              <strong style={{ fontSize: fontSizeNominal(formatRupiah(totalNominal)) }}>{formatRupiah(totalNominal)}</strong>
             </div>
             <div>
               <span>Belum lunas</span>
-              <strong style={{ color: totalBelumLunas > 0 ? '#B1483A' : '#2F7A54' }}>{formatRupiah(totalBelumLunas)}</strong>
+              <strong style={{ color: totalBelumLunas > 0 ? '#B1483A' : '#2F7A54', fontSize: fontSizeNominal(formatRupiah(totalBelumLunas)) }}>{formatRupiah(totalBelumLunas)}</strong>
             </div>
           </div>
 
@@ -260,7 +272,7 @@ export default function Cicilan({ embedded = false }) {
         .cicilan-summary { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.9rem; margin-bottom:1rem; align-items:stretch; }
         .cicilan-summary > div { display:flex; flex-direction:column; justify-content:center; min-width:0; border:1px solid #EFE9D9; border-radius:10px; padding:.85rem .9rem; }
         .cicilan-summary span { display:block; font-size:.72rem; color:#8A7F68; margin-bottom:.3rem; }
-        .cicilan-summary strong { font-size:1.05rem; color:#16332B; overflow-wrap:break-word; }
+        .cicilan-summary strong { display:block; color:#16332B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; line-height:1.25; transition:font-size .1s ease; }
         .cicilan-pie-card { padding:1.3rem; margin-bottom:1.1rem; }
         .cicilan-pie-title { font-size:1rem; margin:0 0 1rem; }
         .cicilan-pie-report-wrap { display:flex; flex-direction:column; min-width:0; }
