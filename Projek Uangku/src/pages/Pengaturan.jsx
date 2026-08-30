@@ -274,7 +274,7 @@ export default function Pengaturan() {
     <div style={{ maxWidth: 720, margin: '0 auto', padding: '1.4rem' }}>
       <h2 style={{ fontSize: '1.5rem', marginBottom: '0.3rem' }}>Pengaturan</h2>
       <p style={{ color: '#3C554C', marginBottom: '1.4rem' }}>
-        Kelola keluarga dan kategori.
+        Kelola akun, keluarga, peran, dan kategori kamu.
       </p>
 
       {keluarga && (
