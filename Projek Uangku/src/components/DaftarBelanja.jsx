@@ -6,7 +6,11 @@ import { useAuth } from '../App'
 // CATATAN: fitur ini SENGAJA dibuat terpisah dari data keuangan (transaksi,
 // anggaran, laporan, dll). Menambah/mencentang/menghapus item di sini
 // tidak menyentuh tabel manapun selain "daftar_belanja" itu sendiri.
-export default function DaftarBelanja() {
+//
+// `embedded`: true saat dipasang sebagai salah satu tab di dalam kartu
+// "Alat Keuangan" (ProfessionalTools) — menghilangkan bungkus kartu &
+// judul ganda karena tab bar induk sudah menampilkan judul/deskripsinya.
+export default function DaftarBelanja({ embedded = false }) {
   const { profile } = useAuth()
   const [items, setItems] = useState([])
   const [loading, setLoading] = useState(true)
@@ -84,15 +88,8 @@ export default function DaftarBelanja() {
   const belumDibeli = items.filter((it) => !it.sudah_dibeli).length
   const semuaSudahDibeli = totalItem > 0 && belumDibeli === 0
 
-  return (
-    <div className="card professional-card shopping-card">
-      <div className="pro-head">
-        <div>
-          <h3>Daftar Belanja</h3>
-          <p>Tulis apa saja yang ingin dibeli, lalu centang saat sudah dibeli di toko — supaya tidak ada yang kelupaan.</p>
-        </div>
-      </div>
-
+  const isi = (
+    <>
       <form onSubmit={tambah} className="inline-form" style={{ marginBottom: '0.9rem' }}>
         <input
           value={namaBaru}
@@ -159,6 +156,22 @@ export default function DaftarBelanja() {
           </div>
         </>
       )}
+    </>
+  )
+
+  if (embedded) {
+    return <section className="shopping-embedded">{isi}</section>
+  }
+
+  return (
+    <div className="card professional-card shopping-card">
+      <div className="pro-head">
+        <div>
+          <h3>Daftar Belanja</h3>
+          <p>Tulis apa saja yang ingin dibeli, lalu centang saat sudah dibeli di toko — supaya tidak ada yang kelupaan.</p>
+        </div>
+      </div>
+      {isi}
     </div>
   )
 }
