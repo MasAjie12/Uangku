@@ -202,6 +202,16 @@ export default function Cicilan({ embedded = false }) {
 
             <div className="cicilan-scroll" role="region" aria-label="Daftar cicilan" tabIndex="0">
               <table className="cicilan-table">
+                <colgroup>
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '13%' }} />
+                  <col style={{ width: '14%' }} />
+                  <col style={{ width: '12%' }} />
+                  <col style={{ width: '9%' }} />
+                  <col style={{ width: '20%' }} />
+                  <col style={{ width: '8%' }} />
+                </colgroup>
                 <thead>
                   <tr>
                     <th>Lunas</th>
@@ -269,16 +279,16 @@ export default function Cicilan({ embedded = false }) {
         .cicilan-count { flex:0 0 auto; border:1px solid var(--line); background:#fff; border-radius:999px; padding:.35rem .65rem; color:var(--ink-soft); font-size:.7rem; font-weight:700; white-space:nowrap; }
         .cicilan-scroll { width:100%; min-width:0; max-width:100%; display:block; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x; scrollbar-width:thin; }
         .cicilan-scroll:focus-visible { outline:2px solid var(--gold); outline-offset:-2px; }
-        .cicilan-table { width:max-content; min-width:820px; border-collapse:separate; border-spacing:0; font-size:.76rem; }
-        .cicilan-table th, .cicilan-table td { padding:.78rem .75rem; border-bottom:1px solid #EFE9D9; text-align:left; vertical-align:middle; white-space:nowrap; }
+        .cicilan-table { width:100%; min-width:820px; table-layout:fixed; border-collapse:separate; border-spacing:0; font-size:.76rem; }
+        .cicilan-table th, .cicilan-table td { padding:.78rem .75rem; border-bottom:1px solid #EFE9D9; text-align:left; vertical-align:middle; white-space:normal; word-break:break-word; }
         .cicilan-table th { position:sticky; top:0; z-index:1; background:#F9F5EA; color:var(--ink-soft); font-size:.68rem; text-transform:uppercase; letter-spacing:.035em; }
         .cicilan-table tbody tr { transition:background .15s ease; }
         .cicilan-table tbody tr:hover { background:#FFFDF7; }
         .cicilan-table tbody tr:last-child td { border-bottom:0; }
         .cicilan-main { font-weight:650; color:var(--ink); }
-        .cicilan-amount { font-weight:750; color:var(--ink); }
-        .cicilan-date { color:#6F6656; }
-        .cicilan-wrap { white-space:normal !important; min-width:150px; max-width:240px; line-height:1.4; }
+        .cicilan-amount { font-weight:750; color:var(--ink); white-space:nowrap; }
+        .cicilan-date { color:#6F6656; white-space:nowrap; }
+        .cicilan-wrap { line-height:1.4; }
         .cicilan-row-lunas .cicilan-main, .cicilan-row-lunas .cicilan-date, .cicilan-row-lunas .cicilan-wrap { color:#9A8F7A; }
         .cicilan-badge { display:inline-flex; align-items:center; border-radius:999px; padding:.32rem .65rem; font-size:.68rem; font-weight:700; border:1px solid transparent; cursor:pointer; white-space:nowrap; }
         .cicilan-badge.belum { color:#7A5A16; background:#FFF8E7; border-color:#E9D6A5; }
