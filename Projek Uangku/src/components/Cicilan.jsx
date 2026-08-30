@@ -1,10 +1,54 @@
-import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import { ResponsiveContainer, PieChart, Pie, Cell, Tooltip } from 'recharts'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
 import { formatRupiah, formatNominalInput, parseNominalInput, formatTanggal, toISODateLocal } from '../utils'
 
 const WARNA_KATEGORI = ['#2F7A54', '#C79A3D', '#B1483A', '#3C6E71', '#8A5A44', '#6B7FD7', '#A3812F', '#4E8098']
+
+const FONT_MAX = 1.05 // rem
+const FONT_MIN = 0.62 // rem
+const FONT_STEP = 0.03 // rem
+
+// Nominal yang ukurannya otomatis mengecil supaya SELALU muat dalam satu
+// baris di dalam kartu, seberapa panjang pun angkanya (ratusan ribu s/d
+// miliaran). Berbeda dari menebak ukuran font dari jumlah karakter, di sini
+// lebar teks diukur langsung di browser (scrollWidth vs clientWidth) lalu
+// disusutkan sampai benar-benar pas, dan diukur ulang tiap kali ukuran
+// kartu berubah (resize / rotasi layar / lebar layar berbeda-beda).
+function AutoFitNominal({ value, color }) {
+  const ref = useRef(null)
+  const [fontSize, setFontSize] = useState(FONT_MAX)
+
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+
+    function sesuaikan() {
+      let size = FONT_MAX
+      el.style.fontSize = size + 'rem'
+      let aman = 0
+      while (el.scrollWidth > el.clientWidth && size > FONT_MIN && aman < 30) {
+        size = Math.round((size - FONT_STEP) * 100) / 100
+        el.style.fontSize = size + 'rem'
+        aman++
+      }
+      setFontSize(size)
+    }
+
+    sesuaikan()
+
+    const ro = new ResizeObserver(() => sesuaikan())
+    ro.observe(el.parentElement || el)
+    return () => ro.disconnect()
+  }, [value])
+
+  return (
+    <strong ref={ref} style={{ color, fontSize: fontSize + 'rem' }}>
+      {value}
+    </strong>
+  )
+}
 
 const FORM_KOSONG = {
   kategori: '',
@@ -18,6 +62,7 @@ const FORM_KOSONG = {
 // Fitur Cicilan: pencatat cicilan barang, murni untuk dokumentasi/checklist.
 // CATATAN: SENGAJA terpisah dari data keuangan (transaksi, anggaran, laporan,
 // dll). Menambah/mencentang/menghapus cicilan di sini tidak menyentuh tabel
+
 // manapun selain "cicilan" itu sendiri — tidak memengaruhi saldo, laporan,
 // atau perhitungan keuangan lainnya di aplikasi.
 export default function Cicilan({ embedded = false }) {
@@ -96,18 +141,6 @@ export default function Cicilan({ embedded = false }) {
   const totalNominal = items.reduce((s, it) => s + Number(it.nominal), 0)
   const totalBelumLunas = items.filter((it) => !it.lunas).reduce((s, it) => s + Number(it.nominal), 0)
 
-  // Menyesuaikan ukuran font nominal ringkasan berdasarkan panjang angka,
-  // supaya nominal berapapun (ratusan ribu s/d miliaran) tetap muat dalam
-  // satu baris dan kartu tetap simetris, tidak ada digit yang turun baris.
-  function fontSizeNominal(text) {
-    const len = text.length
-    if (len <= 13) return '1.05rem'
-    if (len <= 15) return '0.94rem'
-    if (len <= 17) return '0.84rem'
-    if (len <= 19) return '0.75rem'
-    return '0.66rem'
-  }
-
   const isi = (
     <>
       <form onSubmit={tambah} className="inline-form" style={{ marginBottom: '0.5rem' }}>
@@ -166,11 +199,11 @@ export default function Cicilan({ embedded = false }) {
           <div className="cicilan-summary">
             <div>
               <span>Total nilai cicilan</span>
-              <strong style={{ fontSize: fontSizeNominal(formatRupiah(totalNominal)) }}>{formatRupiah(totalNominal)}</strong>
+              <AutoFitNominal value={formatRupiah(totalNominal)} color="#16332B" />
             </div>
             <div>
               <span>Belum lunas</span>
-              <strong style={{ color: totalBelumLunas > 0 ? '#B1483A' : '#2F7A54', fontSize: fontSizeNominal(formatRupiah(totalBelumLunas)) }}>{formatRupiah(totalBelumLunas)}</strong>
+              <AutoFitNominal value={formatRupiah(totalBelumLunas)} color={totalBelumLunas > 0 ? '#B1483A' : '#2F7A54'} />
             </div>
           </div>
 
