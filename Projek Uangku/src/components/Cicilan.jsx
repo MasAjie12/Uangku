@@ -305,7 +305,7 @@ export default function Cicilan({ embedded = false }) {
         .cicilan-summary { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:.9rem; margin-bottom:1rem; align-items:stretch; }
         .cicilan-summary > div { display:flex; flex-direction:column; justify-content:center; min-width:0; border:1px solid #EFE9D9; border-radius:10px; padding:.85rem .9rem; }
         .cicilan-summary span { display:block; font-size:.72rem; color:#8A7F68; margin-bottom:.3rem; }
-        .cicilan-summary strong { display:block; color:#16332B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; line-height:1.25; transition:font-size .1s ease; }
+        .cicilan-summary strong { display:block; color:#16332B; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-variant-numeric:tabular-nums; line-height:1.25; }
         .cicilan-pie-card { padding:1.3rem; margin-bottom:1.1rem; }
         .cicilan-pie-title { font-size:1rem; margin:0 0 1rem; }
         .cicilan-pie-report-wrap { display:flex; flex-direction:column; min-width:0; }
