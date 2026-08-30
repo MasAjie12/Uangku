@@ -8,6 +8,7 @@ import {
   parseNominalInput,
 } from "../utils";
 import DaftarBelanja from "./DaftarBelanja";
+import Cicilan from "./Cicilan";
 
 const TABEL = {
   budget: "anggaran",
@@ -354,6 +355,11 @@ export default function ProfessionalTools({ transactions = [] }) {
       "Tulis apa saja yang ingin dibeli, lalu centang saat sudah dibeli di toko — supaya tidak ada yang kelupaan. Fitur ini terpisah dari data keuangan, murni untuk checklist belanja.",
     ],
     [
+      "cicilan",
+      "Cicilan",
+      "Catat barang yang sedang dicicil beserta tenornya, lalu tandai kalau sudah lunas. Fitur ini juga terpisah dari data keuangan, murni sebagai pencatat/checklist.",
+    ],
+    [
       "repeat",
       "Transaksi Berulang",
       "Mencatat pemasukan atau pengeluaran rutin secara terjadwal agar tidak perlu mengisi ulang dari awal.",
@@ -541,6 +547,7 @@ export default function ProfessionalTools({ transactions = [] }) {
         </section>
       )}
       {tab === "belanja" && <DaftarBelanja embedded />}
+      {tab === "cicilan" && <Cicilan embedded />}
       {tab === "repeat" && (
         <section>
           <form className="inline-form" onSubmit={addRepeat}>
