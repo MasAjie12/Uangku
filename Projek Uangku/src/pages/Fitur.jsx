@@ -2,7 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { supabase } from '../supabaseClient'
 import { useAuth } from '../App'
 import ProfessionalTools from '../components/ProfessionalTools'
-import DaftarBelanja from '../components/DaftarBelanja'
 
 export default function Fitur() {
   const [items, setItems] = useState([])
@@ -37,12 +36,11 @@ export default function Fitur() {
       <div style={{ marginBottom: '1.2rem' }}>
         <h2 style={{ fontSize: '1.5rem' }}>Fitur</h2>
         <p style={{ color: '#3C554C', marginTop: 4 }}>
-          Daftar belanja, anggaran, transaksi berulang, target tabungan, dan tagihan.
+          Anggaran, daftar belanja, transaksi berulang, target tabungan, dan tagihan.
         </p>
       </div>
 
-      <div className="professional-dashboard-section fitur-grid">
-        <DaftarBelanja />
+      <div className="professional-dashboard-section">
         {loading ? (
           <p style={{ color: '#3C554C' }}>Memuat…</p>
         ) : (
