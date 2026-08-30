@@ -490,6 +490,29 @@ img,svg,canvas { max-width:100%; }
 .goal-alert,.bill-alert { margin-top:.8rem; padding:.7rem .85rem; border-radius:9px; font-size:.78rem; line-height:1.45; }
 .goal-alert { background:#EEF6EF; border:1px solid #CFE3D3; color:#2F7A54; }
 .bill-alert { background:#FFF8E7; border:1px solid #E9D6A5; color:#7A5A16; }
+
+/* Halaman Fitur: Daftar Belanja di kiri, Alat Keuangan (Anggaran, dst) di kanan */
+.fitur-grid { display:grid; grid-template-columns:minmax(280px,380px) 1fr; gap:1.2rem; align-items:start; }
+@media(max-width:900px){ .fitur-grid { grid-template-columns:1fr; } }
+
+/* Daftar Belanja */
+.shopping-card .pro-head p { margin-bottom: 0; }
+.shopping-list { display:flex; flex-direction:column; gap:.5rem; margin-top:.8rem; }
+.shopping-item { display:flex; align-items:center; gap:.65rem; padding:.55rem .6rem; border:1px solid var(--line); border-radius:10px; background:#fff; transition:background .15s ease, border-color .15s ease; }
+.shopping-item.is-bought { background:#FAFBF7; border-color:#CFE3D3; }
+.shopping-checkbox { flex:0 0 auto; width:26px; height:26px; border-radius:50%; border:2px solid #DED4BE; background:#fff; color:#fff; font-size:.85rem; font-weight:700; display:flex; align-items:center; justify-content:center; padding:0; cursor:pointer; transition:background .15s ease, border-color .15s ease; }
+.shopping-item.is-bought .shopping-checkbox { background:#2F7A54; border-color:#2F7A54; }
+.shopping-item-body { flex:1 1 auto; min-width:0; display:flex; flex-direction:column; gap:.15rem; cursor:pointer; }
+.shopping-item-nama { font-size:.88rem; color:var(--ink); word-break:break-word; }
+.shopping-item.is-bought .shopping-item-nama { color:#8A7F68; text-decoration:line-through; }
+.shopping-item-status { font-size:.7rem; font-weight:700; text-transform:lowercase; }
+.status-terbeli { color:#2F7A54; }
+.status-belum { color:#B1483A; }
+.shopping-hapus { flex:0 0 auto; border:0; background:none; color:#8A7F68; font-size:.85rem; padding:.2rem .3rem; cursor:pointer; }
+.shopping-hapus:hover { color:#B1483A; }
+@media(max-width:600px){
+  .shopping-item-nama { font-size:.85rem; }
+}
 .push-settings-card { padding:1.1rem 1.2rem; margin-bottom:1.4rem; display:flex; align-items:center; justify-content:space-between; gap:1rem; flex-wrap:wrap; }
 .push-settings-actions { display:flex; align-items:center; gap:.65rem; flex-wrap:wrap; }
 .push-status { color:#8A7F68; font-size:.75rem; }
