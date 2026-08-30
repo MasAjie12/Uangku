@@ -5,6 +5,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import LupaPassword from './pages/LupaPassword'
 import ResetPassword from './pages/ResetPassword'
+import LengkapiProfil from './pages/LengkapiProfil'
 import Dashboard from './pages/Dashboard'
 import Fitur from './pages/Fitur'
 import Laporan from './pages/Laporan'
@@ -34,14 +35,32 @@ function App() {
       return
     }
     let active = true
-    supabase
-      .from('profiles')
-      .select('*')
-      .eq('id', session.user.id)
-      .single()
-      .then(({ data }) => {
-        if (active) setProfile(data)
-      })
+    let percobaan = 0
+
+    function muatProfil() {
+      supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', session.user.id)
+        .single()
+        .then(({ data, error }) => {
+          if (!active) return
+          if (data) {
+            setProfile(data)
+            return
+          }
+          // Untuk login Google, trigger pembuat profil jalan otomatis di
+          // database begitu akun dibuat — seharusnya sudah ada saat sesi
+          // ini didapat. Tapi kalau ada jeda replikasi, coba ulang sebentar
+          // daripada macet di layar "Tunggu Sebentar ya…".
+          if (error && percobaan < 5) {
+            percobaan += 1
+            setTimeout(muatProfil, 700)
+          }
+        })
+    }
+    muatProfil()
+
     return () => {
       active = false
     }
@@ -55,10 +74,19 @@ function App() {
     )
   }
 
+  // Bungkus route yang butuh login. Kalau profil masih perlu melengkapi
+  // pilihan keluarga (khusus user baru dari login Google), semua halaman
+  // utama dialihkan ke /lengkapi-profil dulu sampai itu selesai.
+  function rutePrivat(elemen) {
+    if (!session) return <Navigate to="/login" />
+    if (profile?.perlu_lengkapi_keluarga) return <Navigate to="/lengkapi-profil" />
+    return elemen
+  }
+
   return (
     <AuthContext.Provider value={{ session, profile, setProfile }}>
       <div className="app-shell">
-        {session && location.pathname !== '/reset-password' && <Navbar />}
+        {session && location.pathname !== '/reset-password' && !profile?.perlu_lengkapi_keluarga && <Navbar />}
         <main className="app-main">
           <PageTransition>
             <Routes>
@@ -66,10 +94,16 @@ function App() {
               <Route path="/register" element={session ? <Navigate to="/" /> : <Register />} />
               <Route path="/lupa-password" element={session ? <Navigate to="/" /> : <LupaPassword />} />
               <Route path="/reset-password" element={<ResetPassword />} />
-              <Route path="/" element={session ? <Dashboard /> : <Navigate to="/login" />} />
-              <Route path="/fitur" element={session ? <Fitur /> : <Navigate to="/login" />} />
-              <Route path="/laporan" element={session ? <Laporan /> : <Navigate to="/login" />} />
-              <Route path="/pengaturan" element={session ? <Pengaturan /> : <Navigate to="/login" />} />
+              <Route
+                path="/lengkapi-profil"
+                element={
+                  !session ? <Navigate to="/login" /> : !profile?.perlu_lengkapi_keluarga ? <Navigate to="/" /> : <LengkapiProfil />
+                }
+              />
+              <Route path="/" element={rutePrivat(<Dashboard />)} />
+              <Route path="/fitur" element={rutePrivat(<Fitur />)} />
+              <Route path="/laporan" element={rutePrivat(<Laporan />)} />
+              <Route path="/pengaturan" element={rutePrivat(<Pengaturan />)} />
               <Route path="*" element={<Navigate to="/" />} />
             </Routes>
           </PageTransition>
