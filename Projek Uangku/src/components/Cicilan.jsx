@@ -163,72 +163,85 @@ export default function Cicilan({ embedded = false }) {
           </div>
 
           {pieData.length > 0 && (
-            <div className="cicilan-pie-wrap">
-              <div className="cicilan-pie-box">
-                <ResponsiveContainer width="100%" height={210}>
-                  <PieChart>
-                    <Pie data={pieData} dataKey="value" nameKey="name" outerRadius="72%" paddingAngle={2} label={false} labelLine={false}>
-                      {pieData.map((_, i) => <Cell key={i} fill={WARNA_KATEGORI[i % WARNA_KATEGORI.length]} />)}
-                    </Pie>
-                    <Tooltip formatter={(v) => formatRupiah(v)} />
-                  </PieChart>
-                </ResponsiveContainer>
-              </div>
-              <div className="cicilan-pie-legend">
-                {pieData.map((item, i) => {
-                  const pct = totalNominal ? ((item.value / totalNominal) * 100).toFixed(1) : '0.0'
-                  return (
-                    <div className="pie-category-item" key={item.name}>
-                      <span className="pie-category-name"><i style={{ background: WARNA_KATEGORI[i % WARNA_KATEGORI.length] }}></i>{item.name}</span>
-                      <span className="pie-category-value">{pct}% · {formatRupiah(item.value)}</span>
-                    </div>
-                  )
-                })}
+            <div className="card cicilan-pie-card">
+              <h3 className="cicilan-pie-title">Cicilan berdasarkan Kategori</h3>
+              <div className="cicilan-pie-report-wrap">
+                <div className="cicilan-pie-chart-box">
+                  <ResponsiveContainer width="100%" height={230}>
+                    <PieChart>
+                      <Pie data={pieData} dataKey="value" nameKey="name" outerRadius="72%" paddingAngle={2} label={false} labelLine={false}>
+                        {pieData.map((_, i) => <Cell key={i} fill={WARNA_KATEGORI[i % WARNA_KATEGORI.length]} />)}
+                      </Pie>
+                      <Tooltip formatter={(v) => formatRupiah(v)} />
+                    </PieChart>
+                  </ResponsiveContainer>
+                </div>
+                <div className="cicilan-pie-category-list">
+                  {pieData.map((item, i) => {
+                    const pct = totalNominal ? ((item.value / totalNominal) * 100).toFixed(1) : '0.0'
+                    return (
+                      <div className="cicilan-pie-category-item" key={item.name}>
+                        <span className="cicilan-pie-category-name"><i style={{ background: WARNA_KATEGORI[i % WARNA_KATEGORI.length] }}></i>{item.name}</span>
+                        <span className="cicilan-pie-category-value">{pct}% · {formatRupiah(item.value)}</span>
+                      </div>
+                    )
+                  })}
+                </div>
               </div>
             </div>
           )}
 
-          <div style={{ overflowX: 'auto', marginTop: '0.9rem' }}>
-            <table className="report-table cicilan-table">
-              <thead>
-                <tr>
-                  <th>Lunas</th>
-                  <th>Tanggal</th>
-                  <th>Kategori</th>
-                  <th>Nominal</th>
-                  <th>Toko</th>
-                  <th>Tenor</th>
-                  <th>Keterangan</th>
-                  <th></th>
-                </tr>
-              </thead>
-              <tbody>
-                {items.map((it) => (
-                  <tr key={it.id} className={it.lunas ? 'cicilan-row-lunas' : ''}>
-                    <td>
-                      <button
-                        type="button"
-                        className={`cicilan-checklist ${it.lunas ? 'is-lunas' : ''}`}
-                        onClick={() => toggleLunas(it)}
-                      >
-                        {it.lunas ? '✓ Sudah lunas' : 'Belum lunas'}
-                      </button>
-                    </td>
-                    <td>{formatTanggal(it.tanggal)}</td>
-                    <td>{it.kategori}</td>
-                    <td className="mono" style={{ fontWeight: 700 }}>{formatRupiah(it.nominal)}</td>
-                    <td>{it.toko || '—'}</td>
-                    <td>{it.tenor ? `${it.tenor} bulan` : '—'}</td>
-                    <td>{it.keterangan}</td>
-                    <td>
-                      <button type="button" onClick={() => hapus(it.id)} style={{ background: 'none', border: 'none', color: '#B1483A', fontSize: '0.76rem', padding: 0 }}>
-                        Hapus
-                      </button>
-                    </td>
+          <div className="cicilan-history-card">
+            <div className="cicilan-toolbar">
+              <div>
+                <div className="cicilan-history-title">Daftar Cicilan</div>
+                <div className="cicilan-history-subtitle">Geser tabel ke samping pada layar HP untuk melihat semua informasi.</div>
+              </div>
+              <div className="cicilan-count">{items.length} cicilan</div>
+            </div>
+
+            <div className="cicilan-scroll" role="region" aria-label="Daftar cicilan" tabIndex="0">
+              <table className="cicilan-table">
+                <thead>
+                  <tr>
+                    <th>Lunas</th>
+                    <th>Tanggal</th>
+                    <th>Kategori</th>
+                    <th>Nominal</th>
+                    <th>Toko</th>
+                    <th>Tenor</th>
+                    <th>Keterangan</th>
+                    <th>Aksi</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {items.map((it) => (
+                    <tr key={it.id} className={it.lunas ? 'cicilan-row-lunas' : ''}>
+                      <td>
+                        <button
+                          type="button"
+                          className={`cicilan-badge ${it.lunas ? 'lunas' : 'belum'}`}
+                          onClick={() => toggleLunas(it)}
+                        >
+                          {it.lunas ? '✓ Sudah lunas' : 'Belum lunas'}
+                        </button>
+                      </td>
+                      <td className="cicilan-date">{formatTanggal(it.tanggal)}</td>
+                      <td className="cicilan-main">{it.kategori}</td>
+                      <td className="cicilan-amount mono">{formatRupiah(it.nominal)}</td>
+                      <td>{it.toko || <span className="muted">—</span>}</td>
+                      <td>{it.tenor ? `${it.tenor} bulan` : <span className="muted">—</span>}</td>
+                      <td className="cicilan-wrap">{it.keterangan}</td>
+                      <td>
+                        <button type="button" onClick={() => hapus(it.id)} className="text-button danger-text">Hapus</button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+
+            <div className="cicilan-scroll-hint"><span>↔</span> Geser ke samping untuk melihat kolom lainnya</div>
           </div>
         </>
       )}
@@ -238,15 +251,51 @@ export default function Cicilan({ embedded = false }) {
         .cicilan-summary > div { flex:1 1 160px; border:1px solid #EFE9D9; border-radius:10px; padding:.7rem .9rem; }
         .cicilan-summary span { display:block; font-size:.72rem; color:#8A7F68; margin-bottom:.25rem; }
         .cicilan-summary strong { font-size:1rem; color:#16332B; }
-        .cicilan-pie-wrap { display:flex; flex-wrap:wrap; gap:1rem; align-items:center; border-top:1px solid #EFE9D9; padding-top:.9rem; margin-bottom:.5rem; }
-        .cicilan-pie-box { flex:1 1 200px; min-width:180px; }
-        .cicilan-pie-legend { flex:1 1 200px; display:flex; flex-direction:column; gap:.45rem; min-width:180px; }
-        .cicilan-checklist { border:1px solid #E9D6A5; background:#FFF8E7; color:#7A5A16; font-size:.72rem; font-weight:700; padding:.35rem .6rem; border-radius:999px; white-space:nowrap; cursor:pointer; }
-        .cicilan-checklist.is-lunas { border-color:#CFE3D3; background:#EEF6EF; color:#2F7A54; }
-        .cicilan-row-lunas td { color:#8A7F68; }
-        .cicilan-table th, .cicilan-table td { white-space:nowrap; }
-        .cicilan-table td:nth-child(7) { white-space:normal; min-width:160px; }
-        @media(max-width:780px){ .cicilan-summary,.cicilan-pie-wrap{flex-direction:column} }
+        .cicilan-pie-card { padding:1.3rem; margin-bottom:1.1rem; }
+        .cicilan-pie-title { font-size:1rem; margin:0 0 1rem; }
+        .cicilan-pie-report-wrap { display:flex; flex-direction:column; min-width:0; }
+        .cicilan-pie-chart-box { width:100%; min-width:0; }
+        .cicilan-pie-category-list { display:flex; flex-direction:column; gap:.45rem; margin-top:.35rem; border-top:1px solid #EFE9D9; padding-top:.7rem; }
+        .cicilan-pie-category-item { display:flex; justify-content:space-between; align-items:center; gap:.8rem; font-size:.74rem; min-width:0; }
+        .cicilan-pie-category-name { display:flex; align-items:center; gap:.45rem; min-width:0; color:#3C554C; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+        .cicilan-pie-category-name i { width:9px; height:9px; border-radius:50%; flex:0 0 auto; }
+        .cicilan-pie-category-value { color:#8A7F68; text-align:right; white-space:nowrap; font-variant-numeric:tabular-nums; }
+
+        /* Tabel cicilan bergaya sama seperti Riwayat Transaksi */
+        .cicilan-history-card { overflow:hidden; min-width:0; max-width:100%; border:1px solid var(--line); border-radius:14px; background:#fff; }
+        .cicilan-toolbar { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:1rem 1.1rem; border-bottom:1px solid #EFE9D9; background:linear-gradient(180deg,#fff,#FFFDF7); }
+        .cicilan-history-title { font-family:var(--font-display); font-size:1rem; font-weight:600; color:var(--ink); }
+        .cicilan-history-subtitle { margin-top:.25rem; color:#8A7F68; font-size:.72rem; line-height:1.45; }
+        .cicilan-count { flex:0 0 auto; border:1px solid var(--line); background:#fff; border-radius:999px; padding:.35rem .65rem; color:var(--ink-soft); font-size:.7rem; font-weight:700; white-space:nowrap; }
+        .cicilan-scroll { width:100%; min-width:0; max-width:100%; display:block; overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch; overscroll-behavior-x:contain; touch-action:pan-x; scrollbar-width:thin; }
+        .cicilan-scroll:focus-visible { outline:2px solid var(--gold); outline-offset:-2px; }
+        .cicilan-table { width:max-content; min-width:820px; border-collapse:separate; border-spacing:0; font-size:.76rem; }
+        .cicilan-table th, .cicilan-table td { padding:.78rem .75rem; border-bottom:1px solid #EFE9D9; text-align:left; vertical-align:middle; white-space:nowrap; }
+        .cicilan-table th { position:sticky; top:0; z-index:1; background:#F9F5EA; color:var(--ink-soft); font-size:.68rem; text-transform:uppercase; letter-spacing:.035em; }
+        .cicilan-table tbody tr { transition:background .15s ease; }
+        .cicilan-table tbody tr:hover { background:#FFFDF7; }
+        .cicilan-table tbody tr:last-child td { border-bottom:0; }
+        .cicilan-main { font-weight:650; color:var(--ink); }
+        .cicilan-amount { font-weight:750; color:var(--ink); }
+        .cicilan-date { color:#6F6656; }
+        .cicilan-wrap { white-space:normal !important; min-width:150px; max-width:240px; line-height:1.4; }
+        .cicilan-row-lunas .cicilan-main, .cicilan-row-lunas .cicilan-date, .cicilan-row-lunas .cicilan-wrap { color:#9A8F7A; }
+        .cicilan-badge { display:inline-flex; align-items:center; border-radius:999px; padding:.32rem .65rem; font-size:.68rem; font-weight:700; border:1px solid transparent; cursor:pointer; white-space:nowrap; }
+        .cicilan-badge.belum { color:#7A5A16; background:#FFF8E7; border-color:#E9D6A5; }
+        .cicilan-badge.lunas { color:#286846; background:var(--income-soft); border-color:#CFE3D3; }
+        .cicilan-scroll-hint { display:none; text-align:center; padding:.55rem .75rem; border-top:1px solid #EFE9D9; color:#8A7F68; font-size:.68rem; background:#FFFEFA; }
+        .cicilan-scroll-hint span { font-size:.9rem; margin-right:.25rem; }
+        @media(max-width:780px){
+          .cicilan-summary{flex-direction:column}
+          .cicilan-pie-category-value{font-size:.7rem}
+          .cicilan-scroll{ width:100%; overflow-x:scroll; }
+          .cicilan-toolbar{ align-items:flex-start; padding:.85rem .9rem; }
+          .cicilan-scroll-hint{ display:block; }
+          .cicilan-table{ min-width:820px; }
+          .cicilan-table th,.cicilan-table td{ padding:.7rem .65rem; }
+          .cicilan-table th{ font-size:.64rem; }
+          .cicilan-count{ font-size:.64rem; }
+        }
       `}</style>
     </>
   )
