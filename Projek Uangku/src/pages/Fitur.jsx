@@ -36,7 +36,7 @@ export default function Fitur() {
       <div style={{ marginBottom: '1.2rem' }}>
         <h2 style={{ fontSize: '1.5rem' }}>Fitur</h2>
         <p style={{ color: '#3C554C', marginTop: 4 }}>
-          Anggaran, daftar belanja, transaksi berulang, target tabungan, dan tagihan.
+          Anggaran, daftar belanja, cicilan, transaksi berulang, target tabungan, dan tagihan yang bisa membantu kesehatan financialmu.
         </p>
       </div>
 
