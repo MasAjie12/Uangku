@@ -906,3 +906,73 @@ html[data-theme="dark"] button:not(.btn):not(.theme-toggle):hover {
     min-height: 46px;
   }
 }
+
+/* ===== Dark Mode: Final Button Visibility Fix =====
+   Semua tombol aksi utama tetap memiliki kontras tinggi pada mode gelap. */
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] button.btn {
+  opacity: 1;
+  text-shadow: none;
+}
+
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] button.btn-primary,
+html[data-theme="dark"] .push-settings-actions .btn-primary {
+  background: #D8B35A !important;
+  color: #182019 !important;
+  border: 1px solid #E8C96F !important;
+  box-shadow: 0 2px 10px rgba(0,0,0,.32) !important;
+}
+html[data-theme="dark"] .btn-primary:hover:not(:disabled),
+html[data-theme="dark"] button.btn-primary:hover:not(:disabled) {
+  background: #E8C96F !important;
+  color: #111714 !important;
+}
+html[data-theme="dark"] .btn-primary:focus-visible,
+html[data-theme="dark"] button.btn-primary:focus-visible {
+  outline: 3px solid #F6D978 !important;
+  outline-offset: 2px;
+}
+
+html[data-theme="dark"] .btn-ghost,
+html[data-theme="dark"] button.btn-ghost {
+  background: #252D28 !important;
+  color: #F4F0E6 !important;
+  border: 1px solid #4A5A51 !important;
+}
+html[data-theme="dark"] .btn-ghost:hover:not(:disabled),
+html[data-theme="dark"] button.btn-ghost:hover:not(:disabled) {
+  background: #303A34 !important;
+  color: #FFFFFF !important;
+  border-color: #64756A !important;
+}
+
+html[data-theme="dark"] .btn-danger,
+html[data-theme="dark"] button.btn-danger {
+  background: #572A27 !important;
+  color: #FFD0C9 !important;
+  border: 1px solid #A9554B !important;
+}
+
+/* Tombol yang sedang disabled tetap terbaca, namun jelas tidak aktif. */
+html[data-theme="dark"] .btn:disabled,
+html[data-theme="dark"] button.btn:disabled {
+  opacity: .62 !important;
+  cursor: not-allowed;
+}
+
+/* Tombol inline/non-.btn pada form dan tab agar tidak menyatu dengan background gelap. */
+html[data-theme="dark"] form button[type="submit"]:not(.btn),
+html[data-theme="dark"] .onboarding-tabs button,
+html[data-theme="dark"] .kategori-grid button:not(.btn) {
+  border-color: var(--line) !important;
+}
+
+/* Memastikan teks pada tombol aksi pengaturan keluarga dan notifikasi tidak diwarisi warna samar. */
+html[data-theme="dark"] .push-settings-card button,
+html[data-theme="dark"] .push-settings-actions button,
+html[data-theme="dark"] .family-card button,
+html[data-theme="dark"] .settings-card button,
+html[data-theme="dark"] .card button.btn {
+  font-weight: 650;
+}
