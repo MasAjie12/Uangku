@@ -659,3 +659,204 @@ html[data-theme="dark"] .shopping-groups { background: var(--surface-soft); }
 html[data-theme="dark"] .shopping-group-select select,
 html[data-theme="dark"] .shopping-new-group input { background: #151B18; color: var(--ink); }
 html[data-theme="dark"] .shopping-item { background: var(--paper-raised); border-color: var(--line); }
+
+/* ===== Dark Mode Accessibility Patch =====
+   Menjamin teks dan permukaan yang sebelumnya memakai warna statis tetap terbaca. */
+html[data-theme="dark"] {
+  --paper-raised-2: #202823;
+  --text-on-raised: #F4F0E6;
+  --text-muted-dark: #B7C1BA;
+}
+
+html[data-theme="dark"] .field label,
+html[data-theme="dark"] label,
+html[data-theme="dark"] p,
+html[data-theme="dark"] span,
+html[data-theme="dark"] small,
+html[data-theme="dark"] td,
+html[data-theme="dark"] th,
+html[data-theme="dark"] li,
+html[data-theme="dark"] .history-title,
+html[data-theme="dark"] .history-main,
+html[data-theme="dark"] .shopping-item-nama,
+html[data-theme="dark"] .pro-head p,
+html[data-theme="dark"] .history-subtitle,
+html[data-theme="dark"] .history-role,
+html[data-theme="dark"] .history-created,
+html[data-theme="dark"] .history-scroll-hint,
+html[data-theme="dark"] .push-status,
+html[data-theme="dark"] .push-message,
+html[data-theme="dark"] .shopping-footer,
+html[data-theme="dark"] .shopping-group-select label,
+html[data-theme="dark"] .kategori-grid,
+html[data-theme="dark"] .kategori-grid span {
+  color: var(--ink-soft) !important;
+}
+
+html[data-theme="dark"] h1,
+html[data-theme="dark"] h2,
+html[data-theme="dark"] h3,
+html[data-theme="dark"] h4,
+html[data-theme="dark"] h5,
+html[data-theme="dark"] h6,
+html[data-theme="dark"] strong,
+html[data-theme="dark"] b,
+html[data-theme="dark"] .history-main,
+html[data-theme="dark"] .shopping-item-nama,
+html[data-theme="dark"] .nav-brand .brand-name,
+html[data-theme="dark"] .logout-zone p strong {
+  color: var(--ink) !important;
+}
+
+/* Permukaan putih/krim yang masih didefinisikan secara hard-coded */
+html[data-theme="dark"] .history-toolbar,
+html[data-theme="dark"] .history-count,
+html[data-theme="dark"] .history-table th,
+html[data-theme="dark"] .history-scroll-hint,
+html[data-theme="dark"] .reminder-bell,
+html[data-theme="dark"] .reminder-popover,
+html[data-theme="dark"] .reminder-popover-head,
+html[data-theme="dark"] .reminder-item,
+html[data-theme="dark"] .shopping-item,
+html[data-theme="dark"] .cicilan-history-card,
+html[data-theme="dark"] .push-message,
+html[data-theme="dark"] .shopping-groups,
+html[data-theme="dark"] .kategori-grid > div > div > div,
+html[data-theme="dark"] .kategori-grid > div > div {
+  background: var(--paper-raised) !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+
+html[data-theme="dark"] .history-toolbar {
+  background: linear-gradient(180deg, #1B211E, #171D1A) !important;
+}
+html[data-theme="dark"] .history-table th {
+  background: #242C27 !important;
+  color: var(--ink-soft) !important;
+}
+html[data-theme="dark"] .history-table th,
+html[data-theme="dark"] .history-table td {
+  border-bottom-color: var(--line) !important;
+}
+html[data-theme="dark"] .history-table tbody tr:hover,
+html[data-theme="dark"] .reminder-item:hover {
+  background: #252D28 !important;
+}
+
+/* Pengaturan Kategori: teks, input, tombol Edit/Hapus dan area edit */
+html[data-theme="dark"] .kategori-grid button,
+html[data-theme="dark"] .kategori-grid button[style] {
+  color: var(--ink-soft) !important;
+}
+html[data-theme="dark"] .kategori-grid button[type="submit"] {
+  color: var(--income) !important;
+}
+html[data-theme="dark"] .kategori-grid input[type="text"],
+html[data-theme="dark"] .kategori-grid input:not([type]),
+html[data-theme="dark"] .kategori-grid input[type="checkbox"] {
+  color: var(--ink) !important;
+}
+html[data-theme="dark"] .kategori-grid input[type="checkbox"] {
+  accent-color: var(--gold);
+}
+
+/* Tabel laporan dan kartu/chart */
+html[data-theme="dark"] .report-table,
+html[data-theme="dark"] .report-table td,
+html[data-theme="dark"] .report-table th {
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+html[data-theme="dark"] .report-table th {
+  background: #242C27 !important;
+  color: var(--ink-soft) !important;
+}
+html[data-theme="dark"] .report-table tbody tr:hover {
+  background: #252D28 !important;
+}
+
+/* Select, input, textarea dan option di seluruh halaman */
+html[data-theme="dark"] select,
+html[data-theme="dark"] option,
+html[data-theme="dark"] input,
+html[data-theme="dark"] textarea {
+  background: #151B18 !important;
+  color: var(--ink) !important;
+  border-color: var(--line) !important;
+}
+html[data-theme="dark"] select option {
+  background: #151B18 !important;
+  color: var(--ink) !important;
+}
+html[data-theme="dark"] input::placeholder,
+html[data-theme="dark"] textarea::placeholder {
+  color: #87938B !important;
+}
+
+/* Tombol dengan warna statis agar tetap terbaca */
+html[data-theme="dark"] .btn-ghost {
+  color: var(--ink-soft) !important;
+  background: transparent !important;
+  border-color: var(--line) !important;
+}
+html[data-theme="dark"] .btn-primary {
+  color: #F6F1E4 !important;
+}
+html[data-theme="dark"] .btn-danger {
+  color: #F0A69C !important;
+  background: var(--expense-soft) !important;
+}
+html[data-theme="dark"] .text-button {
+  color: #9FD0D4 !important;
+}
+html[data-theme="dark"] .danger-text,
+html[data-theme="dark"] .status-belum {
+  color: #F09A8E !important;
+}
+html[data-theme="dark"] .status-terbeli,
+html[data-theme="dark"] .income-text {
+  color: #7FD39D !important;
+}
+html[data-theme="dark"] .expense-text {
+  color: #F09A8E !important;
+}
+
+/* Reminder / popup */
+html[data-theme="dark"] .reminder-popover {
+  box-shadow: 0 16px 40px rgba(0,0,0,.45);
+}
+html[data-theme="dark"] .reminder-popover-head {
+  background: #1B211E !important;
+  border-bottom-color: var(--line) !important;
+}
+html[data-theme="dark"] .reminder-popover-head span,
+html[data-theme="dark"] .reminder-item small,
+html[data-theme="dark"] .reminder-empty {
+  color: var(--ink-soft) !important;
+}
+html[data-theme="dark"] .reminder-close {
+  background: #252D28 !important;
+  color: var(--ink-soft) !important;
+}
+
+/* Komponen cicilan / alat profesional yang memakai background #fff */
+html[data-theme="dark"] .cicilan-history-card,
+html[data-theme="dark"] .cicilan-count {
+  background: var(--paper-raised) !important;
+  color: var(--ink) !important;
+}
+html[data-theme="dark"] .cicilan-history-card * {
+  border-color: var(--line);
+}
+
+/* Link dan tombol ikon yang menggunakan warna statis */
+html[data-theme="dark"] a {
+  color: var(--ink-soft);
+}
+html[data-theme="dark"] button:not(.btn):not(.theme-toggle) {
+  color: var(--ink-soft);
+}
+html[data-theme="dark"] button:not(.btn):not(.theme-toggle):hover {
+  color: var(--ink) !important;
+}
