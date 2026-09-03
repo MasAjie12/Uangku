@@ -13,6 +13,19 @@ import Pengaturan from './pages/Pengaturan'
 import Navbar from './components/Navbar'
 import Footer from './components/Footer'
 
+function ThemeToggle() {
+  const [dark, setDark] = React.useState(() => localStorage.getItem('uangku-theme') === 'dark')
+  useEffect(() => {
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light'
+    localStorage.setItem('uangku-theme', dark ? 'dark' : 'light')
+  }, [dark])
+  return (
+    <button className="theme-toggle" type="button" onClick={() => setDark(v => !v)} aria-label={dark ? 'Gunakan mode terang' : 'Gunakan dark mode'} title={dark ? 'Mode terang' : 'Dark mode'}>
+      <span aria-hidden="true">{dark ? '☀️' : '🌙'}</span><span>{dark ? 'Terang' : 'Gelap'}</span>
+    </button>
+  )
+}
+
 export const AuthContext = createContext(null)
 export const useAuth = () => useContext(AuthContext)
 
@@ -68,7 +81,7 @@ function App() {
 
   if (session === undefined || (session && profile === null)) {
     return (
-      <div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'Inter, sans-serif', color: '#3C554C' }}>
+      <div style={{ display: 'grid', placeItems: 'center', height: '100vh', fontFamily: 'Inter, sans-serif', color: 'var(--ink-soft)' }}>
         Tunggu Sebentar ya…
       </div>
     )
@@ -86,6 +99,7 @@ function App() {
   return (
     <AuthContext.Provider value={{ session, profile, setProfile }}>
       <div className="app-shell">
+        <ThemeToggle />
         {session && location.pathname !== '/reset-password' && !profile?.perlu_lengkapi_keluarga && <Navbar />}
         <main className="app-main">
           <PageTransition>
